@@ -67,7 +67,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
 #=============================================================#
 
-def run_server(port=8000):
+def run_server(port=5000):
     server_address = ('', port)
     httpd = HTTPServer(server_address, SimpleHandler)
     print(f'Starting server on port {port}...')

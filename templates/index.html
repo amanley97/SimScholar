@@ -1,0 +1,86 @@
+<!------------------------------------------------------------------------------
+# NOTICE: This code is the exclusive property of University of Kansas
+#         Architecture Research and is strictly confidential.
+#
+#         Unauthorized distribution, reproduction, or use of this code, in
+#         whole or in part, is strictly prohibited. This includes, but is
+#         not limited to, any form of public or private distribution,
+#         publication, or replication.
+#
+# For inquiries or access requests, please contact:
+#         Alex Manley (amanley97@ku.edu)
+#         Mahmudul Hasan (m.hasan@ku.edu)
+# ------------------------------------------------------------------------------>
+
+<!-- SIMPLE FRONTEND FOR USE WITH GEM5 API -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EAGER Gem5 GUI using API requests</title>
+</head>
+<body>
+
+<script>
+  function simulate() {
+        alert('Simulation Started!');
+    }
+
+    // Add a click event listener to the button
+    document.getElementById('simulateButton').addEventListener('click', simulate);
+</script>
+
+  <h1>EAGER Gem5 GUI using API requests</h1>
+  <h2>Here are the config options: </h2>
+
+<div>
+  <h2>BOARD Types</h2>
+  Select a <b>BOARD</b>: 
+  <select name="board" id="board">
+    {% for board in board_types %}
+      <option value={{board}}>{{board}}</option>
+    {% endfor %} 
+  </select><br>
+</div>
+    
+<div>
+    <h2>CPU Types</h2>
+    Select a <b>CPU</b>: 
+    <select name="cpu" id="cpu">
+      {% for cpu in cpu_types %}
+        <option value={{cpu}}>{{cpu}}</option>
+      {% endfor %} 
+    </select><br>
+</div>
+
+<div>
+    <h2>MEM Types</h2>
+    Select a <b>MEMORY</b> configuration: 
+    <select name="mem" id="mem">
+      {% for mem_type, mem_configs in mem_types.items() %}
+        {% for type in mem_configs %}
+          <option value={{type}}>{{mem_type}}: {{type}}</option>
+        {% endfor %}
+      {% endfor %} 
+    </select><br>
+</div>
+
+<div>
+  <h2>CACHE Types</h2>
+  Select a <b>CACHE</b> configuration: 
+  <select name="cache" id="cache">
+    {% for cache in cache_types %}
+      <option value={{cache}}>{{cache}}</option>
+    {% endfor %} 
+  </select><br>
+</div>
+
+<div>
+  <br>
+  <input type="button", id="simulateButton", value="Simulate" onclick="simulate()">
+</div>
+
+</body>
+</html>
