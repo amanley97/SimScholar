@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EAGER</title>
+</head>
+
+<body>
+  <h1>Welcome to EAGER Gem5!</h1>
+  <p>
+    Here are the config options: <br><br>
+    Select a <b>BOARD</b>: 
+    <select name="board" id="board">
+      
+        <option value=simple>simple</option>
+       
+    </select><br>
+
+    Select a <b>CPU</b>: 
+    <select name="cpu" id="cpu">
+      
+        <option value=atomic>atomic</option>
+      
+        <option value=kvm>kvm</option>
+      
+        <option value=o3>o3</option>
+      
+        <option value=minor>minor</option>
+      
+        <option value=timing>timing</option>
+       
+    </select><br>
+
+    Select <b>MEMORY</b>: 
+    <select name="mem" id="mem">
+    
+      
+        <option value=['DDR3_1600_8x8', 'DDR3_2133_8x8']>ddr3: DDR3_1600_8x8</option>
+      
+        <option value=['DDR3_1600_8x8', 'DDR3_2133_8x8']>ddr3: DDR3_2133_8x8</option>
+      
+    
+      
+        <option value=['DDR4_2400_16x4', 'DDR4_2400_4x16', 'DDR4_2400_8x8']>ddr4: DDR4_2400_16x4</option>
+      
+        <option value=['DDR4_2400_16x4', 'DDR4_2400_4x16', 'DDR4_2400_8x8']>ddr4: DDR4_2400_4x16</option>
+      
+        <option value=['DDR4_2400_16x4', 'DDR4_2400_4x16', 'DDR4_2400_8x8']>ddr4: DDR4_2400_8x8</option>
+      
+    
+      
+        <option value=['DDR5_4400_4x8', 'DDR5_6400_4x8', 'DDR5_8400_4x8']>ddr5: DDR5_4400_4x8</option>
+      
+        <option value=['DDR5_4400_4x8', 'DDR5_6400_4x8', 'DDR5_8400_4x8']>ddr5: DDR5_6400_4x8</option>
+      
+        <option value=['DDR5_4400_4x8', 'DDR5_6400_4x8', 'DDR5_8400_4x8']>ddr5: DDR5_8400_4x8</option>
+      
+    
+      
+        <option value=['HBM_1000_4H_1x128', 'HBM_1000_4H_1x64', 'HBM_2000_4H_1x64']>hbm: HBM_1000_4H_1x128</option>
+      
+        <option value=['HBM_1000_4H_1x128', 'HBM_1000_4H_1x64', 'HBM_2000_4H_1x64']>hbm: HBM_1000_4H_1x64</option>
+      
+        <option value=['HBM_1000_4H_1x128', 'HBM_1000_4H_1x64', 'HBM_2000_4H_1x64']>hbm: HBM_2000_4H_1x64</option>
+      
+    
+      
+        <option value=['LPDDR3_1600_1x32']>lpddr3: LPDDR3_1600_1x32</option>
+      
+     
+    </select><br>
+    
+    Select a <b>CACHE</b>: 
+    <select name="cache" id="cache">
+      
+        <option value=no cache>no cache</option>
+       
+    </select><br>
+    </select>
+    <br><br>
+    <input type="button", value="Simulate", onclick="simulate()">
+  </p>
+</body>
+</html>

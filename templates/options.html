@@ -1,0 +1,47 @@
+{# templates/options.html #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EAGER</title>
+</head>
+
+<body>
+  <h1>Welcome to EAGER Gem5!</h1>
+  <p>
+    Here are the config options: <br><br>
+    Select a <b>BOARD</b>: 
+    <select name="board" id="board">
+      {% for board in board_types %}
+        <option value={{board}}>{{board}}</option>
+      {% endfor %} 
+    </select><br>
+
+    Select a <b>CPU</b>: 
+    <select name="cpu" id="cpu">
+      {% for cpu in cpu_types %}
+        <option value={{cpu}}>{{cpu}}</option>
+      {% endfor %} 
+    </select><br>
+
+    Select <b>MEMORY</b>: 
+    <select name="mem" id="mem">
+    {% for mem_type, mem_configs in mem_types.items() %}
+      {% for type in mem_configs %}
+        <option value={{type}}>{{mem_type}}: {{type}}</option>
+      {% endfor %}
+    {% endfor %} 
+    </select><br>
+    
+    Select a <b>CACHE</b>: 
+    <select name="cache" id="cache">
+      {% for cache in cache_types %}
+        <option value={{cache}}>{{cache}}</option>
+      {% endfor %} 
+    </select><br>
+    </select>
+    <br><br>
+    <input type="button", value="Simulate", onclick="simulate()">
+  </p>
+</body>
+</html>
