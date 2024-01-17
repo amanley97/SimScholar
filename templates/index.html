@@ -24,9 +24,27 @@
 <body>
 
 <script>
+  function runGem5Simulator() {
+        fetch('/run-simulator', {
+            method: 'PUT',
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Simulator started successfully');
+            } else {
+                console.error('Failed to start simulator:', response.statusText);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+  }
+  
   function simulate() {
         alert('Simulation Started!');
+        runGem5Simulator();
     }
+  
 
     // Add a click event listener to the button
     document.getElementById('simulateButton').addEventListener('click', simulate);

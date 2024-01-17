@@ -12,15 +12,25 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
+import threading
 from gem5.components.processors.cpu_types import *
 from gem5.components.memory import *
+from gem5.components import *
+from gem5.simulate.simulator import Simulator
+
+# Test using simple ARM
+from gem5.isas import ISA
+from gem5.resources.resource import obtain_resource
+from gem5.components.memory import SingleChannelDDR3_1600
+from gem5.components.boards.simple_board import SimpleBoard
+from gem5.components.cachehierarchies.classic.no_cache import NoCache
+from gem5.components.processors.simple_processor import SimpleProcessor
+
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import inspect, json
 
 MemTypes = {name:obj for name,obj in inspect.getmembers(dram_interfaces, inspect.ismodule)}
-newline_str = '\n'
-newline_bytes = newline_str.encode('utf-8')
 
 def get_cls(file, mask):
     cls = []
@@ -44,12 +54,18 @@ def get_cpu_types():
 #=============================================================#
 
 class SimpleHandler(BaseHTTPRequestHandler):
-    
+
     def do_GET(self):
         if self.path == '/get-mem-types':
             self.handle_mem_types()
         elif self.path == '/get-cpu-types':
             self.handle_cpu_types()
+        else:
+            self.send_error(404, 'Not Found')
+
+    def do_PUT(self):
+        if self.path == '/run-simulation':
+            self.handle_run_simulator()
         else:
             self.send_error(404, 'Not Found')
 
@@ -65,6 +81,15 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(get_cpu_types())
 
+    def handle_run_simulator(self):
+        simulator_thread = threading.Thread(target=run_gem5_simulator())
+        simulator_thread.start()
+
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b"Simulator started in a separate thread\n")
+
 #=============================================================#
 
 def run_server(port=5000):
@@ -73,5 +98,20 @@ def run_server(port=5000):
     print(f'Starting server on port {port}...')
     httpd.serve_forever()
 
+def run_gem5_simulator():
+        simulator = Simulator(board=board)
+        simulator.run()
+
+board = SimpleBoard(
+    clk_freq="3GHz",
+    processor=SimpleProcessor(cpu_type=CPUTypes.TIMING, isa=ISA.ARM, num_cores=1),
+    memory=SingleChannelDDR3_1600(size="32MB"),
+    cache_hierarchy=NoCache()
+)
+board.set_se_binary_workload(
+    obtain_resource("arm-hello64-static")
+)
+
 if __name__ == '__m5_main__':
     run_server()
+    

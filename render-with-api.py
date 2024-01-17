@@ -36,5 +36,10 @@ def index():
                             mem_types=mem_types,
                             cache_types=cache_types)
 
+@app.route('/run-simulator', methods=['PUT'])
+def run_simulator():
+    requests.put('http://127.0.0.1:5000/run-simulation')
+    return 'Simulator started', 200
+
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
