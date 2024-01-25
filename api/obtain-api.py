@@ -105,12 +105,6 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
 #=============================================================#
 
-# def run_server(port=5000):
-#     server_address = ('', port)
-#     httpd = HTTPServer(server_address, SimpleHandler)
-#     print(f'Starting server on port {port}...')
-#     httpd.serve_forever()
-
 def run_server(port=5000):
     server_address = ('', port)
     httpd = HTTPServer(server_address, SimpleHandler)
@@ -124,6 +118,10 @@ def run_server(port=5000):
     # Keep the main thread busy (e.g., waiting for user input)
     while not shutdown_flag:
         pass
+
+    # Close the server's socket explicitly before initiating shutdown
+    print("Closing server socket...")
+    httpd.server_close()
 
     # Initiate graceful shutdown
     print("Shutting down server...")
