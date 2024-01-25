@@ -12,7 +12,7 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
-import threading
+import threading, os, signal
 from gem5.components.processors.cpu_types import *
 from gem5.components.memory import *
 from gem5.components import *
@@ -31,6 +31,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import inspect, json
 
 MemTypes = {name:obj for name,obj in inspect.getmembers(dram_interfaces, inspect.ismodule)}
+# Global flag to control server shutdown
+shutdown_flag = False
 
 def get_cls(file, mask):
     cls = []
@@ -66,6 +68,8 @@ class SimpleHandler(BaseHTTPRequestHandler):
     def do_PUT(self):
         if self.path == '/run-simulation':
             self.handle_run_simulator()
+        elif self.path == '/shutdown':
+            self.handle_shutdown()
         else:
             self.send_error(404, 'Not Found')
 
@@ -90,13 +94,41 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"Simulator started in a separate thread\n")
 
+    def handle_shutdown(self):
+        global shutdown_flag
+        shutdown_flag = True  # Set the global flag to initiate shutdown
+
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b"Shutting down server\n")
+
 #=============================================================#
+
+# def run_server(port=5000):
+#     server_address = ('', port)
+#     httpd = HTTPServer(server_address, SimpleHandler)
+#     print(f'Starting server on port {port}...')
+#     httpd.serve_forever()
 
 def run_server(port=5000):
     server_address = ('', port)
     httpd = HTTPServer(server_address, SimpleHandler)
+
+    # Run the server in a separate thread
+    server_thread = threading.Thread(target=httpd.serve_forever)
+    server_thread.start()
+
     print(f'Starting server on port {port}...')
-    httpd.serve_forever()
+
+    # Keep the main thread busy (e.g., waiting for user input)
+    while not shutdown_flag:
+        pass
+
+    # Initiate graceful shutdown
+    print("Shutting down server...")
+    httpd.shutdown()
+    server_thread.join()  # Wait for the server thread to finish
 
 def run_gem5_simulator():
         simulator = Simulator(board=board)

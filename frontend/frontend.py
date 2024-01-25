@@ -1,3 +1,17 @@
+# ----------------------------------------------------------------------------
+# NOTICE: This code is the exclusive property of University of Kansas
+#         Architecture Research and is strictly confidential.
+#
+#         Unauthorized distribution, reproduction, or use of this code, in
+#         whole or in part, is strictly prohibited. This includes, but is
+#         not limited to, any form of public or private distribution,
+#         publication, or replication.
+#
+# For inquiries or access requests, please contact:
+#         Alex Manley (amanley97@ku.edu)
+#         Mahmudul Hasan (m.hasan@ku.edu)
+# ----------------------------------------------------------------------------
+
 import tkinter as tk
 from tkinter import ttk
 import calls
@@ -8,6 +22,10 @@ hint = str("Hints: Some helpful information here")
 def run_simulation():
     hint = calls.simulate_action()
     bottom_bar.config(text=str(hint))
+
+def exit():
+    calls.exit_server()
+    root.destroy()
 
 def show_section(section):
     # Set weight for the selected section, making it larger
@@ -115,7 +133,7 @@ simulate_button = tk.Button(root, text="Simulate", command=run_simulation, width
 simulate_button.grid(row=len(section_titles)*2 + 3, column=1, padx=10, pady=5, sticky=tk.E)
 
 # Add "Exit" button to the far right below the hint
-exit_button = tk.Button(root, text="Exit", command=root.destroy)
+exit_button = tk.Button(root, text="Exit", command=exit)
 exit_button.grid(row=len(section_titles)*2 + 3, column=2, padx=20, pady=5, sticky=tk.E)
 
 # Show Section 1 by default

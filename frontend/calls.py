@@ -1,3 +1,17 @@
+# ----------------------------------------------------------------------------
+# NOTICE: This code is the exclusive property of University of Kansas
+#         Architecture Research and is strictly confidential.
+#
+#         Unauthorized distribution, reproduction, or use of this code, in
+#         whole or in part, is strictly prohibited. This includes, but is
+#         not limited to, any form of public or private distribution,
+#         publication, or replication.
+#
+# For inquiries or access requests, please contact:
+#         Alex Manley (amanley97@ku.edu)
+#         Mahmudul Hasan (m.hasan@ku.edu)
+# ----------------------------------------------------------------------------
+
 import requests
 
 def simulate_action():
@@ -42,3 +56,22 @@ def get_gem5_data():
           mem_types.append(mem_type+": "+type)
 
     return [board_types, cpu_types, cache_types, mem_types]
+
+def exit_server():
+    try:
+        response = requests.put('http://127.0.0.1:5000/shutdown')
+
+    # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            print("Request successful")
+            return (response)
+        else:
+            return (f"Request failed with status code: {response.status_code}")
+    except requests.RequestException as e:
+        # Handle exceptions related to the request (e.g., connection error, timeout)
+        print(f"Request failed: {e}")
+        return (f"Request failed: {e}")
+    except Exception as e:
+        # Handle other unexpected exceptions
+        print(f"An unexpected error occurred: {e}")
+        return (f"An unexpected error occurred: {e}")
