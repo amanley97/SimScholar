@@ -12,7 +12,7 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
-import threading, os, signal
+import threading, os, signal, multiprocessing
 from gem5.components.processors.cpu_types import *
 from gem5.components.memory import *
 from gem5.components import *
@@ -86,9 +86,13 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.wfile.write(get_cpu_types())
 
     def handle_run_simulator(self):
-        simulator_thread = threading.Thread(target=run_gem5_simulator())
-        simulator_thread.start()
-
+        # simulator_thread = threading.Thread(target=run_gem5_simulator())
+        # simulator_thread.start()
+        print("PRESSED SIMULATION")
+        process = multiprocessing.Process(target=run_gem5_simulator)
+        process.start()
+        process.join()
+        # run_gem5_simulator()
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
@@ -110,36 +114,38 @@ def run_server(port=5000):
     httpd = HTTPServer(server_address, SimpleHandler)
 
     # Run the server in a separate thread
-    server_thread = threading.Thread(target=httpd.serve_forever)
-    server_thread.start()
+    # server_thread = threading.Thread(target=httpd.serve_forever)
+    # server_thread.start()
+
 
     print(f'Starting server on port {port}...')
-
+    httpd.serve_forever()
     # Keep the main thread busy (e.g., waiting for user input)
-    while not shutdown_flag:
-        pass
-
-    # Close the server's socket explicitly before initiating shutdown
-    print("Closing server socket...")
-    httpd.server_close()
-
-    # Initiate graceful shutdown
-    print("Shutting down server...")
-    httpd.shutdown()
-    server_thread.join()  # Wait for the server thread to finish
+    # while not shutdown_flag:
+    #     pass
+    #
+    # # Close the server's socket explicitly before initiating shutdown
+    # print("Closing server socket...")
+    # httpd.server_close()
+    #
+    # # Initiate graceful shutdown
+    # print("Shutting down server...")
+    # httpd.shutdown()
+    # server_thread.join()  # Wait for the server thread to finish
 
 def run_gem5_simulator():
+        print("PID: ", os.getpid())
         simulator = Simulator(board=board)
         simulator.run()
 
 board = SimpleBoard(
     clk_freq="3GHz",
-    processor=SimpleProcessor(cpu_type=CPUTypes.TIMING, isa=ISA.ARM, num_cores=1),
+    processor=SimpleProcessor(cpu_type=CPUTypes.TIMING, isa=ISA.X86, num_cores=1),
     memory=SingleChannelDDR3_1600(size="32MB"),
     cache_hierarchy=NoCache()
 )
 board.set_se_binary_workload(
-    obtain_resource("arm-hello64-static")
+    obtain_resource("x86-hello64-static")
 )
 
 if __name__ == '__m5_main__':
