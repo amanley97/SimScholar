@@ -12,44 +12,21 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
-import requests
-
-def simulate_action():
-    try:
-        response = requests.put('http://127.0.0.1:5000/run-simulation')
-
-    # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            print("Request successful")
-            return (response)
-        else:
-            return (f"Request failed with status code: {response.status_code}")
-
-    except requests.RequestException as e:
-        # Handle exceptions related to the request (e.g., connection error, timeout)
-        print(f"Request failed: {e}")
-        return (f"Request failed: {e}")
-    except Exception as e:
-        # Handle other unexpected exceptions
-        print(f"An unexpected error occurred: {e}")
-        return (f"An unexpected error occurred: {e}")
-    
+import requests, json    
 
 def get_gem5_data():
 
-    # response0 = requests.get('http://127.0.0.1:5000/get-board-types')
-    # board_types = response0.json() if response0.status_code == 200 else None
-    board_types = ['simple']
+    board_req = http_request("get-board-types", "GET")
+    board_types = board_req.json() if board_req.status_code == 200 else ["NULL"]
 
-    response1 = requests.get('http://127.0.0.1:5000/get-cpu-types')
-    cpu_types = response1.json() if response1.status_code == 200 else None
+    cpu_req = http_request("get-cpu-types", "GET")
+    cpu_types = cpu_req.json() if cpu_req.status_code == 200 else ["NULL"]
 
-    # response2 = requests.get('http://127.0.0.1:5000/get-cache-types')
-    # cache_types = response2.json() if response2.status_code == 200 else None
-    cache_types = ['No Cache']
+    cache_req = http_request("get-cache-types", "GET")
+    cache_types = cache_req.json() if cache_req.status_code == 200 else ["NULL"]
 
-    response3 = requests.get('http://127.0.0.1:5000/get-mem-types')
-    mem_types_o = response3.json() if response3.status_code == 200 else None
+    mem_req = http_request("get-mem-types", "GET")
+    mem_types_o = mem_req.json() if mem_req.status_code == 200 else ["NULL"]
     mem_types = []
     for mem_type, mem_configs in mem_types_o.items():
         for type in mem_configs:
@@ -57,21 +34,33 @@ def get_gem5_data():
 
     return [board_types, cpu_types, cache_types, mem_types]
 
-def exit_server():
-    try:
-        response = requests.put('http://127.0.0.1:5000/shutdown')
+def http_request(api_endpoint, request_type, data=None):
+    """
+    Handles HTTP requests based on the provided endpoint and request type.
 
-    # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            print("Request successful")
-            return (response)
+    Parameters:
+    - api_endpoint (str): The API endpoint URL.
+    - request_type (str): The HTTP request type (e.g., 'GET', 'PUT', 'POST').
+    - data (dict, optional): Data to be included in the request body (for 'PUT' or 'POST').
+
+    Returns:
+    - response (requests.Response): The response object from the HTTP request.
+    """
+    headers = {"Content-Type": "application/json"}
+    full_url = f"http://localhost:5000/{api_endpoint}"
+
+    try:
+        if request_type.upper() == 'GET':
+            response = requests.get(full_url, headers=headers)
+        elif request_type.upper() == 'PUT':
+            response = requests.put(full_url, data=json.dumps(data), headers=headers)
+        elif request_type.upper() == 'POST':
+            response = requests.post(full_url, data=json.dumps(data), headers=headers)
         else:
-            return (f"Request failed with status code: {response.status_code}")
-    except requests.RequestException as e:
-        # Handle exceptions related to the request (e.g., connection error, timeout)
+            raise ValueError("Invalid request type. Supported types are 'GET', 'PUT', and 'POST'.")
+        print(f"Request {request_type} for {api_endpoint} successful.")
+        return response
+    
+    except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
-        return (f"Request failed: {e}")
-    except Exception as e:
-        # Handle other unexpected exceptions
-        print(f"An unexpected error occurred: {e}")
-        return (f"An unexpected error occurred: {e}")
+        return response
