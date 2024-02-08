@@ -64,3 +64,21 @@ def http_request(api_endpoint, request_type, data=None):
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
         return response
+
+def run_simulation(output_location):
+    output = http_request("run-simulation", "PUT")
+    output_location.config(text=str(output.text))
+
+def exit(root, debug=None):
+    http_request("shutdown", "PUT")
+    root.destroy()
+    if debug != None:
+        debug.destroy()
+
+def print_selected(list, label):
+    result_dict = {}
+    for label, stringvar in zip(label, list):
+        value = stringvar.get()
+        result_dict[label] = value
+    data_test = http_request("user-data", "PUT", result_dict)
+    print(data_test.text)
