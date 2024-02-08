@@ -34,9 +34,10 @@ def debug_window(root, sections):
     header_label = tk.Label(debug, text="EAGER Debugger", font=('TkDefaultFont', 16, 'bold'))
     header_label.grid(row=0, column=0, columnspan=3, pady=10)
 
-    def select_frame(section, selection):
-        global current_section
-        current_section = section["main"]["title_obj"].cget("text")
+    def debug_selection(value):
+        global current_section 
+        current_section = value.get()
+        # title=current_section["main"]["title"]
         print(current_section)
 
     var = tk.StringVar()
@@ -45,15 +46,15 @@ def debug_window(root, sections):
         sec_ttl = sections[section_idx]["main"]["title"]
         # Create selector buttons
         opt = tk.Radiobutton(debug, text=f"Frame {section_idx}: {sec_ttl}", 
-                             variable=var, value=sections[section_idx], command=lambda value=sec_ttl: print(value))
+                             variable=var, value=sec_ttl, command=lambda value=var: debug_selection(value))
         opt.grid(row=section_idx+2, column=0, padx=5, pady=5, columnspan=2)
         option.append(opt)
 
     # SHOW FRAME
-    show_button = tk.Button(debug, text="Show Frame", command=lambda: render.hide_section(sections, current_section["main"]["title"]))
+    show_button = tk.Button(debug, text="Hide Frame", command=lambda: render.hide_section(current_section, sections))
     show_button.grid(row=7, column=0, padx=20, pady=5, sticky=tk.E)
 
     # HIDE BUTTON
-    hide_button = tk.Button(debug, text="Hide Frame", command=lambda: render.show_section(sections, current_section["main"]["title"]))
+    hide_button = tk.Button(debug, text="Show Frame", command=lambda: render.show_section(current_section, sections))
     hide_button.grid(row=7, column=1, padx=20, pady=5, sticky=tk.E)
     return debug
