@@ -65,10 +65,10 @@ def get_board_types():
         cache_hierarchy_info = {k: board_info[k] for k in cache_types}
 
         board_info[board] = {
-            'clk_freq': board_info[board][0],  # Assuming clk_freq is a string and not another key
-            'memory': board_info[board][2],  # Assuming memory is a string and not another key
-            'processor': processor_info,
-            'cache_hierarchy': cache_hierarchy_info
+            'clk_freq': [board_info[board][0]],  # Assuming clk_freq is a string and not another key
+            'Memory': [board_info[board][2], "size"],  # Assuming memory is a string and not another key
+            'Processor': processor_info,
+            'Cache Hierarchy': cache_hierarchy_info
         }
     # Remove extra items from the dictionary
     for key in ['SimpleProcessor', *cache_types]:
@@ -139,12 +139,13 @@ class SimpleHandler(BaseHTTPRequestHandler):
         print("PRESSED SIMULATION")
         process = multiprocessing.Process(target=run_gem5_simulator)
         process.start()
-        process.join()
-        
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
         self.wfile.write(b"Simulator started in a separate thread\n")
+        process.join()
+        
+        self.wfile.write(b"Simulation Complete\n")
 
     def handle_shutdown(self):
         # TODO: Ensure the backend server and port are closed

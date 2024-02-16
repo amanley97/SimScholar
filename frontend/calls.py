@@ -30,9 +30,9 @@ def get_gem5_data():
     mem_types = []
     for mem_type, mem_configs in mem_types_o.items():
         for type in mem_configs:
-          mem_types.append(mem_type+": "+type)
+          mem_types.append(type)
 
-    return [board_types, cpu_types, cache_types, mem_types]
+    return [board_types, mem_types, cpu_types, cache_types]
 
 def http_request(api_endpoint, request_type, data=None):
     """

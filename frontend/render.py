@@ -17,7 +17,7 @@ from tkinter import ttk
 
 def render_frame(master, row_offset):
     section_frame = tk.Frame(master, highlightthickness=0, relief=tk.RIDGE)
-    section_frame.grid(row=row_offset*2 + 1, column=0, padx=10, pady=5, sticky=tk.W)
+    section_frame.grid(row=row_offset*2 + 1, column=0, padx=10, pady=10, sticky=tk.W)
     return section_frame
 
 def render_label(master, text, row, column, font_size, wraplen=None):
@@ -47,13 +47,19 @@ def render_section(master, row_offset, title, opts, func, subopts):
     section_frame = render_frame(master=master, row_offset=row_offset)
 
     # Add section title to the frame
-    title_label = render_label(section_frame, title, row=0, column=0, font_size=12)
+    pretty_title = title +" Type"
+    title_label = render_label(section_frame, pretty_title, row=0, column=0, font_size=12)
 
     # Create a dropdown menu
+    if title == "Cache Hierarchy":
+        opts = list(subopts.keys())
+        subopts = ["size"]
+    elif title == "Memory":
+        subopts = ["size"]
     dropdown, dropdown_value = render_dropdown(section_frame, opts)
     
     # Create a label to display the selected option
-    selected_option_label = render_label(section_frame, "", row=0, column=1, font_size=10)
+    # selected_option_label = render_label(section_frame, "", row=0, column=1, font_size=10)
 
     section_frame_info=dict(frame_obj=section_frame, 
                             frame_row=section_frame.grid_info()["row"], 
@@ -67,10 +73,10 @@ def render_section(master, row_offset, title, opts, func, subopts):
                            dropdown_row=dropdown.grid_info()["row"], 
                            dropdown_column=dropdown.grid_info()["column"], 
                            dropdown_value=dropdown_value.get(),
-                           selection_label=selected_option_label.cget("text"),
-                           selection_obj=selected_option_label,
-                           selection_row=selected_option_label.grid_info()["row"], 
-                           selection_column=selected_option_label.grid_info()["column"]
+                        #    selection_label=selected_option_label.cget("text"),
+                        #    selection_obj=selected_option_label,
+                        #    selection_row=selected_option_label.grid_info()["row"], 
+                        #    selection_column=selected_option_label.grid_info()["column"]
                            )
     section_info = dict(frame=section_frame_info,
                         main=section_type_info,

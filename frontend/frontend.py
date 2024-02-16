@@ -44,13 +44,13 @@ def root_window(en_debug=False):
         print(current_section)
 
     def render_board_opts(n, input):
-        chosen_board=section_menu[str(input)].items()
-        for i, (main_option, sub_options) in enumerate(chosen_board):
+        chosen_board=list(section_menu[str(input)].items())
+        for i, (main_option, sub_options) in enumerate(chosen_board[1:]):
             # Create each section
             section = render.render_section(master=root,  
-                                            row_offset=i, 
+                                            row_offset=i+1, 
                                             title=main_option,
-                                            opts=options[i],
+                                            opts=options[i+1],
                                             func= update_select,
                                             subopts=sub_options
                                             )
@@ -67,10 +67,10 @@ def root_window(en_debug=False):
     boards = list(section_menu.keys())
     render.render_section(master=root,
                           row_offset=0,
-                          title="Board Style",
+                          title="Board",
                           opts=boards,
                           func=render_board_opts,
-                          subopts=None
+                          subopts=section_menu[boards[0]]["clk_freq"]
                           )
 
     # EDIT BUTTON
@@ -83,20 +83,20 @@ def root_window(en_debug=False):
 
     # HINT BAR
     bottom_bar = tk.Label(root, text=hint, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-    bottom_bar.grid(row=len(section_menu)*2 + 2, column=0, columnspan=3, padx=5, pady=5, sticky=tk.W+tk.E)
+    bottom_bar.grid(row=len(section_menu)*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky=tk.W+tk.E)
 
     if en_debug:
         # DEBUG BUTTON
         debug_button = tk.Button(root, text="debug", command=lambda: debug.open_debug(root, sections))
-        debug_button.grid(row=len(section_menu)*2 + 3, column=0, padx=5, pady=5)
+        debug_button.grid(row=len(section_menu)*3 + 3, column=0, padx=5, pady=5)
 
     # SIMULATE BUTTON
     simulate_button = tk.Button(root, text="Simulate", command=lambda: calls.run_simulation(bottom_bar), width=60)
-    simulate_button.grid(row=len(section_menu)*2 + 3, column=1, padx=10, pady=5, sticky=tk.E)
+    simulate_button.grid(row=len(section_menu)*3 + 3, column=1, padx=10, pady=5, sticky=tk.E)
 
     # EXIT BUTTON
     exit_button = tk.Button(root, text="Exit", command=lambda: calls.exit(root=root))
-    exit_button.grid(row=len(section_menu)*2 + 3, column=2, padx=20, pady=5, sticky=tk.E)
+    exit_button.grid(row=len(section_menu)*3 + 3, column=2, padx=20, pady=5, sticky=tk.E)
 
     # DEFAULTS
     canvas.delete("all")
