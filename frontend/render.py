@@ -79,17 +79,17 @@ def render_section(master, row_offset, title, opts, func, subopts):
     # Create textboxes for sub-options
     if subopts != None:
         for j, sub_option in enumerate(subopts):
-            label, textbox, textbox_value = render_subopts(section_frame, sub_option, j)
-            section_subopt_info = dict(option=str(label.cget("text")),
-                                    option_obj=label,
-                                    option_row=label.grid_info()["row"],
-                                    option_column=label.grid_info()["column"],
-                                    textbox_obj=textbox, 
-                                    textbox_row=textbox.grid_info()["row"], 
-                                    textbox_column=textbox.grid_info()["column"], 
-                                    textbox_value=textbox_value.get()
-                                    )
-            section_info.update({f"suboption {j}" : section_subopt_info})
+                label, textbox, textbox_value = render_subopts(section_frame, sub_option, j)
+                section_subopt_info = dict(option=str(label.cget("text")),
+                                        option_obj=label,
+                                        option_row=label.grid_info()["row"],
+                                        option_column=label.grid_info()["column"],
+                                        textbox_obj=textbox, 
+                                        textbox_row=textbox.grid_info()["row"], 
+                                        textbox_column=textbox.grid_info()["column"], 
+                                        textbox_value=textbox_value.get()
+                                        )
+                section_info.update({f"suboption {j}" : section_subopt_info})
     
     if func != None:
         dropdown.bind("<<ComboboxSelected>>", lambda event,selected=dropdown_value, section_info=section_info: func(section_info, selected.get()))

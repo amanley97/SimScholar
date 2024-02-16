@@ -13,7 +13,7 @@
 # ----------------------------------------------------------------------------
 
 import tkinter as tk
-import calls, image, render, debug
+import calls, image, render, debug, json
 sections = []
 
 def root_window(en_debug=False):
@@ -25,11 +25,12 @@ def root_window(en_debug=False):
     options = calls.get_gem5_data()
 
     # Define section titles
-    section_menu = {"Board Style" : ["Clock Frequency"], 
-                    "Processor" : ["CPU Type", "Number of Cores"], 
-                    "Cache Hierarchy" : ["L1 Size"], 
-                    "Memory" : ["Size"]
-                    }
+    # section_menu = {"Board Style" : options[0], 
+    #                 "Processor" : ["CPU Type", "Number of Cores"], 
+    #                 "Cache Hierarchy" : ["L1 Size"], 
+    #                 "Memory" : ["Size"]
+    #                 }
+    section_menu = options[0]
 
     # Create dropdown menus, labels, and variables
     hint = str("Hints: Some helpful information here")
@@ -42,6 +43,19 @@ def root_window(en_debug=False):
         render.show_section("Cache Hierarchy", sections)
         print(current_section)
 
+    def render_board_opts(n, input):
+        chosen_board=section_menu[str(input)].items()
+        for i, (main_option, sub_options) in enumerate(chosen_board):
+            # Create each section
+            section = render.render_section(master=root,  
+                                            row_offset=i, 
+                                            title=main_option,
+                                            opts=options[i],
+                                            func= update_select,
+                                            subopts=sub_options
+                                            )
+            sections.append(section)
+
     def edit():
         # advance_section(True)
         edit_button.grid_remove()
@@ -49,17 +63,15 @@ def root_window(en_debug=False):
     # Header label
     header_label = tk.Label(root, text="Welcome to EAGER Gem5 GUI", font=('TkDefaultFont', 16, 'bold'))
     header_label.grid(row=0, column=0, columnspan=3, pady=10)
-
-    for i, (main_option, sub_options) in enumerate(section_menu.items()):
-        # Create each section
-        section = render.render_section(master=root,  
-                                        row_offset=i, 
-                                        title=main_option,
-                                        opts=options[i],
-                                        func= update_select,
-                                        subopts=sub_options
-                                        )
-        sections.append(section)
+    
+    boards = list(section_menu.keys())
+    render.render_section(master=root,
+                          row_offset=0,
+                          title="Board Style",
+                          opts=boards,
+                          func=render_board_opts,
+                          subopts=None
+                          )
 
     # EDIT BUTTON
     edit_button = tk.Button(root, text="Edit", command=edit)
