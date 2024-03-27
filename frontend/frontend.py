@@ -13,23 +13,35 @@
 # ----------------------------------------------------------------------------
 
 import tkinter as tk
-import calls, image, render, debug, json
+from tkinter import ttk
+import calls, image, render, debug, json, ide, stats
 sections = []
 
-def root_window(en_debug=False):
+def root_window():
     # Create the main window
     root = tk.Tk()
-    root.title("eager")
+    root.title("eager    ->    the all-in-one gem5 environment")
 
+    notebook = ttk.Notebook(root)
+    notebook.grid(row=1, column=0, columnspan=2, sticky="nsew")
+
+    tab1 = tk.Frame(notebook, background="gray")
+    tab2 = tk.Frame(notebook, background="gray")
+    tab3 = tk.Frame(notebook, background="gray")
+    notebook.add(tab1, text="Configure")
+    notebook.add(tab2, text="Code Editor")
+    notebook.add(tab3, text="Statistics")
+    
+    cfg_window(tab1)
+    ide.code_window(tab2)
+    stats.stats_window(tab3)
+    # debug.debug_window(tab3)
+    root.mainloop()
+
+def cfg_window(tab1):
     # Obtain gem5 data
     options = calls.get_gem5_data()
 
-    # Define section titles
-    # section_menu = {"Board Style" : options[0], 
-    #                 "Processor" : ["CPU Type", "Number of Cores"], 
-    #                 "Cache Hierarchy" : ["L1 Size"], 
-    #                 "Memory" : ["Size"]
-    #                 }
     section_menu = options[0]
 
     # Create dropdown menus, labels, and variables
@@ -47,7 +59,7 @@ def root_window(en_debug=False):
         chosen_board=list(section_menu[str(input)].items())
         for i, (main_option, sub_options) in enumerate(chosen_board[1:]):
             # Create each section
-            section = render.render_section(master=root,  
+            section = render.render_section(master=tab1,  
                                             row_offset=i+1, 
                                             title=main_option,
                                             opts=options[i+1],
@@ -61,12 +73,12 @@ def root_window(en_debug=False):
         edit_button.grid_remove()
 
     # Header label
-    header_label = tk.Label(root, text="Welcome to EAGER Gem5 GUI", font=('TkDefaultFont', 16, 'bold'))
+    header_label = tk.Label(tab1, text="Gem5 System Config", font=('TkDefaultFont', 16, 'bold'), bg="gray", fg="Black")
     header_label.grid(row=0, column=0, columnspan=3, pady=10)
     
     boards = list(section_menu.keys())
-    render.render_section(master=root,
-                          row_offset=0,
+    render.render_section(master=tab1,
+                          row_offset=1,
                           title="Board",
                           opts=boards,
                           func=render_board_opts,
@@ -74,32 +86,26 @@ def root_window(en_debug=False):
                           )
 
     # EDIT BUTTON
-    edit_button = tk.Button(root, text="Edit", command=edit)
+    edit_button = tk.Button(tab1, text="Edit", command=edit)
     edit_button.grid_remove()
 
     # CANVAS
-    canvas = tk.Canvas(root, width=600, height=400, bg="white")
+    canvas = tk.Canvas(tab1, width=600, height=400, bg="lightgray")
     canvas.grid(row=1, column=1, padx=10, pady=10, rowspan=len(section_menu)*2 + 1, columnspan=2, sticky=tk.W)
 
     # HINT BAR
-    bottom_bar = tk.Label(root, text=hint, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+    bottom_bar = tk.Label(tab1, text=hint, bd=1, relief=tk.SUNKEN, anchor=tk.W, bg="lightgray", fg="Black")
     bottom_bar.grid(row=len(section_menu)*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky=tk.W+tk.E)
 
-    if en_debug:
-        # DEBUG BUTTON
-        debug_button = tk.Button(root, text="debug", command=lambda: debug.open_debug(root, sections))
-        debug_button.grid(row=len(section_menu)*3 + 3, column=0, padx=5, pady=5)
-
     # SIMULATE BUTTON
-    simulate_button = tk.Button(root, text="Simulate", command=lambda: calls.run_simulation(bottom_bar), width=60)
+    simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar), width=60)
     simulate_button.grid(row=len(section_menu)*3 + 3, column=1, padx=10, pady=5, sticky=tk.E)
 
     # EXIT BUTTON
-    exit_button = tk.Button(root, text="Exit", command=lambda: calls.exit(root=root))
-    exit_button.grid(row=len(section_menu)*3 + 3, column=2, padx=20, pady=5, sticky=tk.E)
+    # exit_button = tk.Button(tab1, text="Exit", command=lambda: calls.exit(root=tab1))
+    # exit_button.grid(row=len(section_menu)*3 + 3, column=2, padx=20, pady=5, sticky=tk.E)
 
     # DEFAULTS
     canvas.delete("all")
-    root.mainloop()
 
-root_window(en_debug=True)
+root_window()

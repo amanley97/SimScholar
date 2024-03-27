@@ -16,21 +16,23 @@ import tkinter as tk
 from tkinter import ttk
 
 def render_frame(master, row_offset):
-    section_frame = tk.Frame(master, highlightthickness=0, relief=tk.RIDGE)
-    section_frame.grid(row=row_offset*2 + 1, column=0, padx=10, pady=10, sticky=tk.W)
+    section_frame = tk.Frame(master, highlightthickness=0, relief=tk.RIDGE, bg="gray")
+    section_frame.grid(row=row_offset, column=0, padx=10, pady=5, sticky=tk.W)
     return section_frame
 
 def render_label(master, text, row, column, font_size, wraplen=None):
     label = tk.Label(master, 
                      text=text, 
                      font=('TkDefaultFont', font_size, 'normal'), 
-                     wraplength=wraplen)
+                     wraplength=wraplen,
+                     bg="gray",
+                     fg="black")
     label.grid(row=row, column=column, padx=5, pady=5, sticky=tk.W)
     return label
 
 def render_dropdown(master, values):
     dropdown_var = tk.StringVar()
-    dropdown = ttk.Combobox(master, textvariable=dropdown_var, values=values)
+    dropdown = ttk.Combobox(master, textvariable=dropdown_var, values=values, foreground="black")
     dropdown.grid(row=0, column=1, padx=5, pady=5)
     return dropdown, dropdown_var
 
@@ -38,7 +40,7 @@ def render_subopts(master, sub_option, row):
     sub_option_label = render_label(master, sub_option, row+2, 0, 10)
 
     textbox_var = tk.StringVar()
-    textbox = tk.Entry(master, textvariable=textbox_var)
+    textbox = tk.Entry(master, textvariable=textbox_var, bg="lightgray", fg="black")
     textbox.grid(row=row + 2, column=1, padx=5, pady=5)
     return sub_option_label, textbox, textbox_var
 
