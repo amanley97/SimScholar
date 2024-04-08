@@ -13,62 +13,76 @@
 # ----------------------------------------------------------------------------
 
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import ttk
+from tkinter import filedialog, ttk, Menu, Menubutton, messagebox
+import subprocess
 
-# Function to save the text to a file
-def save_file(text):
-    file_path = filedialog.asksaveasfilename(defaultextension=".c", 
-                                             filetypes=[("C Program Files", "*.c"), ("All files", "*.*")],
-                                             initialdir="./test-progs")
-    if file_path:
-        with open(file_path, "w") as file:
-            text_content = text.get("1.0", "end-1c")  # Get the content of the text widget
+def save_as_file(text, file_info):
+    file_info['file_path'] = None
+    save_file(text, file_info)
+
+def save_file(text, file_info):
+    if 'file_path' in file_info and file_info['file_path']:  # Check if there is a previously saved file
+        with open(file_info['file_path'], "w") as file:
+            text_content = text.get("1.0", "end-1c")
             file.write(text_content)
+    else:
+        file_path = filedialog.asksaveasfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./test-progs")
+        if file_path:
+            with open(file_path, "w") as file:
+                text_content = text.get("1.0", "end-1c")
+                file.write(text_content)
+            file_info['file_path'] = file_path  # Store the new file path        
 
-# Function to open a file
-def open_file(text, func):
-    file_path = filedialog.askopenfilename(filetypes=[("C Program Files", "*.c"), ("All files", "*.*")],
-                                           initialdir="./test-progs")
+def open_file(text, file_info, func):
+    file_path = filedialog.askopenfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./test-progs")
     if file_path:
         with open(file_path, "r") as file:
             file_content = file.read()
             text.delete("1.0", "end")
             text.insert("1.0", file_content)
-    func()
+        file_info['file_path'] = file_path  # Update the file path
+        func()
 
-def code_window(code):
+def compile(file_info):
+    print("Compiling")
+    print(file_info)
 
-    header_label = tk.Label(code, text="Simulation Workload Editor", font=('TkDefaultFont', 16, 'bold'), bg="gray", fg="black")
+    if (file_info["file_path"] == None):
+        messagebox.showerror("Error", "File must be saved before compiling!")
+        
+    else:
+        srcname = file_info["file_path"]
+        execname = "workload"
+        cmd = ["gcc", "-O2", srcname, "-o", execname]
+        p = subprocess.Popen(cmd)
+        p.wait()
+
+def code_window(tab):
+    file_info = {'file_path': None,
+                 'gcc_path': '/bin/gcc'}
+    header_label = tk.Label(tab, text="Simulation Workload Editor", font=('TkDefaultFont', 16, 'bold'), bg="gray", fg="black")
     header_label.grid(row=0, column=0, columnspan=2, pady=20, padx=20)
 
-    notebook = ttk.Notebook(code)
-    notebook.grid(row=1, column=0, columnspan=2, sticky="nsew")
+    filebutton = Menubutton(tab, text="File", relief=tk.RAISED)
+    filebutton.grid(row=0, column=0, padx=10, pady=10)
 
-    tab1 = tk.Frame(notebook, background="darkgray")
-    tab2 = tk.Frame(notebook, background="darkgray")
+    filemenu = Menu(filebutton, tearoff=0)
+    filebutton['menu'] = filemenu
+    
+    filemenu.add_command(label="Open", command=lambda: open_file(text, file_info, update_line_numbers))
+    filemenu.add_command(label="Save", command=lambda: save_file(text, file_info))
+    filemenu.add_command(label="Save As", command=lambda: save_as_file(text, file_info))
 
-    notebook.add(tab1, text="Code")
-    notebook.add(tab2, text="File")
-
-    # Text widget for displaying line numbers
-    line_numbers = tk.Text(tab1, width=4, padx=4, borderwidth=0, highlightthickness=0, background="gray", foreground="white")
-    line_numbers.grid(row=0, column=0, sticky="nsew")
-
-    text = tk.Text(tab1, 
+    text = tk.Text(tab, 
                    width=80, 
-                   height=20,
-                   font="Courier",
+                   height=15, 
+                   font="Courier", 
                    cursor="arrow", 
-                   bg="lightgray",
-                   fg="black",
-                   wrap="none")  # disable text wrapping
-    text.grid(row=0, column=1, sticky="nsew")
+                   bg="lightgray", 
+                   fg="black", 
+                   wrap="none")
+    text.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
 
-    padd = tk.Text(tab1, width=4, padx=4, borderwidth=0, highlightthickness=0, background="gray", foreground="white")
-    padd.grid(row=0, column=2, sticky="nsew")
-
-    # Function to update line numbers
     def update_line_numbers(event=None):
         lines = text.get("1.0", "end").count("\n")
         line_numbers.config(state="normal")
@@ -77,22 +91,13 @@ def code_window(code):
             line_numbers.insert("end", f"{i}\n")
         line_numbers.config(state="disabled")
 
-    # Bind scrollbar movements to update line numbers
     text.bind("<MouseWheel>", update_line_numbers)
     text.bind("<Button-4>", update_line_numbers)
     text.bind("<Button-5>", update_line_numbers)
     text.bind("<Key>", update_line_numbers)
 
-    save_button = tk.Button(tab2, text="Save", command=lambda: save_file(text))
-    save_button.grid(row=0, column=0, padx=5, pady=10)
+    line_numbers = tk.Text(tab, width=4, padx=2, borderwidth=0, highlightthickness=0, background="gray", foreground="white", state=tk.DISABLED)
+    line_numbers.grid(row=1, column=0, sticky="ns", padx=(0, 20))
 
-    open_button = tk.Button(tab2, text="Open", command=lambda: open_file(text, update_line_numbers))
-    open_button.grid(row=0, column=1, padx=5, pady=10)
-
-    code.bind("<Control-s>", lambda event: save_file(text))
-    code.bind("<Control-o>", lambda event: open_file(text, update_line_numbers))
-
-    code.grid_rowconfigure(1, weight=1)
-    code.grid_columnconfigure(0, weight=1)
-
-# code_window()
+    compile_button = tk.Button(tab, text="Compile", command=lambda: compile(file_info), width=60)
+    compile_button.grid(row=2, column=1, padx=10, pady=5, sticky=tk.E)
