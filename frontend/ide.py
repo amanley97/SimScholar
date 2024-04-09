@@ -13,11 +13,12 @@
 # ----------------------------------------------------------------------------
 
 import tkinter as tk
-from tkinter import filedialog, ttk, Menu, Menubutton, messagebox
+from tkinter import filedialog, Menu, Menubutton, messagebox
 import subprocess
 
 def save_as_file(text, file_info):
     file_info['file_path'] = None
+    file_info['compile_path'] = None
     save_file(text, file_info)
 
 def save_file(text, file_info):
@@ -26,7 +27,7 @@ def save_file(text, file_info):
             text_content = text.get("1.0", "end-1c")
             file.write(text_content)
     else:
-        file_path = filedialog.asksaveasfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./test-progs")
+        file_path = filedialog.asksaveasfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./workloads")
         if file_path:
             with open(file_path, "w") as file:
                 text_content = text.get("1.0", "end-1c")
@@ -34,7 +35,7 @@ def save_file(text, file_info):
             file_info['file_path'] = file_path  # Store the new file path        
 
 def open_file(text, file_info, func):
-    file_path = filedialog.askopenfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./test-progs")
+    file_path = filedialog.askopenfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./workloads")
     if file_path:
         with open(file_path, "r") as file:
             file_content = file.read()
@@ -49,17 +50,20 @@ def compile(file_info):
 
     if (file_info["file_path"] == None):
         messagebox.showerror("Error", "File must be saved before compiling!")
-        
-    else:
+    elif (file_info["compile_path"] == None):
+        messagebox.showerror("Error", "Please specify executable path!")
+        file_info["compile_path"] = filedialog.asksaveasfilename(defaultextension="", filetypes=[("C Executable", ""), ("All files", "*.*")], initialdir="./workloads", title="Executable Path")
+    
         srcname = file_info["file_path"]
-        execname = "workload"
-        cmd = ["gcc", "-O2", srcname, "-o", execname]
+        execpath = file_info["compile_path"]
+        cmd = ["gcc", "-O2", srcname, "-o", execpath]
         p = subprocess.Popen(cmd)
         p.wait()
+        messagebox.showinfo("Information", "Workload Compiled Successfully!")
 
 def code_window(tab):
     file_info = {'file_path': None,
-                 'gcc_path': '/bin/gcc'}
+                 'compile_path': None}
     header_label = tk.Label(tab, text="Simulation Workload Editor", font=('TkDefaultFont', 16, 'bold'), bg="gray", fg="black")
     header_label.grid(row=0, column=0, columnspan=2, pady=20, padx=20)
 
@@ -99,5 +103,8 @@ def code_window(tab):
     line_numbers = tk.Text(tab, width=4, padx=2, borderwidth=0, highlightthickness=0, background="gray", foreground="white", state=tk.DISABLED)
     line_numbers.grid(row=1, column=0, sticky="ns", padx=(0, 20))
 
+    # workload_name = tk.Text(tab, width=60, height=1, padx=2, borderwidth=0, highlightthickness=0)
+    # workload_name.grid(row=2, column=1, pady=5, sticky=tk.E)
+
     compile_button = tk.Button(tab, text="Compile", command=lambda: compile(file_info), width=60)
-    compile_button.grid(row=2, column=1, padx=10, pady=5, sticky=tk.E)
+    compile_button.grid(row=3, column=1, padx=10, pady=5, sticky=tk.E)

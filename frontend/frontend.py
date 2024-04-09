@@ -15,7 +15,38 @@
 import tkinter as tk
 from tkinter import ttk
 import calls, image, render, debug, json, ide, stats
-sections = []
+
+options = {
+    'boards' : {
+        'type' : ['Simple', 'x86', 'ARM'],
+        'clk' : 0
+    },
+    'processor' : {
+        'isa' : ['x86', 'ARM'],
+        'type' : ['atomic', 'o3', 'minor'],
+        'ncores' : 0
+    },
+    'memory' : {
+        'type' : ['SingleChannelDDR3_1600',
+                  'SingleChannelDDR4_2400',
+                  'DualChannelDDR4_2400'],
+        'size' : 0
+    },
+    'cache' : {
+        'type' : ['NoCache',
+                  'PrivateL1CacheHierarchy',
+                  'PrivateL1PrivateL2CacheHierarchy',
+                  'PrivateL1SharedL2CacheHierarchy'],
+        'l1d' : 0,
+        'l1i' : 0
+    }
+}
+
+
+boards = options['boards']
+processors = options['processor']
+memories = options['memory']
+caches = options['cache']
 
 def root_window():
     # Create the main window
@@ -35,60 +66,43 @@ def root_window():
     cfg_window(tab1)
     ide.code_window(tab2)
     stats.stats_window(tab3)
-    # debug.debug_window(tab3)
     root.mainloop()
+
+def cfg_tabs(master):
+    tabs = ttk.Notebook(master)
+    tabs.grid(row=1, rowspan= 1, column=0, sticky="nsew")
+
+    tab1 = render.render_section(tabs, boards, "Board Configuration")
+    tab2 = render.render_section(tabs, processors, "Processor Configuration")
+    tab3 = render.render_section(tabs, memories, "Memory Configuration")
+    tab4 = render.render_section(tabs, caches, "Cache Configuration")
+
+    tabs.add(tab1, text="Board")
+    tabs.add(tab2, text="Processor")
+    tabs.add(tab3, text="Memory")
+    tabs.add(tab4, text="Cache Hierarchy")
+
 
 def cfg_window(tab1):
     # Obtain gem5 data
     options = calls.get_gem5_data()
-
+    # print(options)
     section_menu = options[0]
 
     # Create dropdown menus, labels, and variables
     hint = str("Hints: Some helpful information here")
 
-    def update_select(section, selection):
-        idx = sections.index(section)
-        current_section = sections[idx]
-        current_section["main"]["dropdown_value"] = selection
-        render.hide_section("Cache Hierarchy", sections)
-        render.show_section("Cache Hierarchy", sections)
-        print(current_section)
-
-    def render_board_opts(n, input):
-        chosen_board=list(section_menu[str(input)].items())
-        for i, (main_option, sub_options) in enumerate(chosen_board[1:]):
-            # Create each section
-            section = render.render_section(master=tab1,  
-                                            row_offset=i+1, 
-                                            title=main_option,
-                                            opts=options[i+1],
-                                            func= update_select,
-                                            subopts=sub_options
-                                            )
-            sections.append(section)
-
-    def edit():
-        # advance_section(True)
-        edit_button.grid_remove()
-
     # Header label
     header_label = tk.Label(tab1, text="Gem5 System Config", font=('TkDefaultFont', 16, 'bold'), bg="gray", fg="Black")
     header_label.grid(row=0, column=0, columnspan=3, pady=10)
     
-    boards = list(section_menu.keys())
-    render.render_section(master=tab1,
-                          row_offset=1,
-                          title="Board",
-                          opts=boards,
-                          func=render_board_opts,
-                          subopts=section_menu[boards[0]]["clk_freq"]
-                          )
+    cfg_tabs(tab1)
 
-    # EDIT BUTTON
-    edit_button = tk.Button(tab1, text="Edit", command=edit)
-    edit_button.grid_remove()
-
+    # RESOURCE MANAGER
+    resources = tk.Frame(tab1, background="darkgray")
+    resources.grid(row=2, rowspan=2, column=0, pady=10, sticky="nsew")
+    ttk.Label(resources, text="Resource Manager", font=('TkDefaultFont', 10, 'bold'), background="darkgray").pack(pady=(10, 5), padx=10, anchor='w')
+    
     # CANVAS
     canvas = tk.Canvas(tab1, width=600, height=400, bg="lightgray")
     canvas.grid(row=1, column=1, padx=10, pady=10, rowspan=len(section_menu)*2 + 1, columnspan=2, sticky=tk.W)
@@ -100,10 +114,6 @@ def cfg_window(tab1):
     # SIMULATE BUTTON
     simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar), width=60)
     simulate_button.grid(row=len(section_menu)*3 + 3, column=1, padx=10, pady=5, sticky=tk.E)
-
-    # EXIT BUTTON
-    # exit_button = tk.Button(tab1, text="Exit", command=lambda: calls.exit(root=tab1))
-    # exit_button.grid(row=len(section_menu)*3 + 3, column=2, padx=20, pady=5, sticky=tk.E)
 
     # DEFAULTS
     canvas.delete("all")
