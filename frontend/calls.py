@@ -14,25 +14,59 @@
 
 import requests, json    
 
+opt = {
+    'boards' : {
+        'type' : [],
+        'clk' : 0
+    },
+    'processor' : {
+        'isa' : ['ISA.X86', 'ISA.ARM'], # TODO
+        'type' : [],
+        'ncores' : 0
+    },
+    'memory' : {
+        'type' : [],
+        'size' : 0
+    },
+    'cache' : {
+        'type' : [],
+        # 'l1d' : 0,
+        # 'l1i' : 0
+    }
+}
+
 def get_gem5_data():
 
     board_req = http_request("get-board-types", "GET")
     board_types = board_req.json() if board_req.status_code == 200 else ["NULL"]
-
+    for key,value in board_types.items():
+        opt['boards']['type'].append(key)
+        for k_t, v_t in value.items():
+            if isinstance(v_t, dict):
+                for k_t2, v_t2 in v_t.items():
+                    if k_t2 not in opt['cache']['type']:
+                        opt['cache']['type'].append(k_t2)
+                    # TODO for Alex
+                        for i in v_t2:
+                            if i.endswith('_size'):
+                                opt['cache'][i] = 0
     cpu_req = http_request("get-cpu-types", "GET")
     cpu_types = cpu_req.json() if cpu_req.status_code == 200 else ["NULL"]
+    for items in cpu_types:
+        opt['processor']['type'].append(items)
 
     cache_req = http_request("get-cache-types", "GET")
     cache_types = cache_req.json() if cache_req.status_code == 200 else ["NULL"]
 
     mem_req = http_request("get-mem-types", "GET")
     mem_types_o = mem_req.json() if mem_req.status_code == 200 else ["NULL"]
-    mem_types = []
-    for mem_type, mem_configs in mem_types_o.items():
-        for type in mem_configs:
-          mem_types.append(type)
-
-    return [board_types, mem_types, cpu_types, cache_types]
+    # mem_types = []
+    # for mem_type, mem_configs in mem_types_o.items():
+    #     for type in mem_configs:
+    #       mem_types.append(type)
+    opt['memory']['type'] = mem_types_o
+    # return [board_types, cpu_types]
+    return [opt]
 
 def http_request(api_endpoint, request_type, data=None):
     """

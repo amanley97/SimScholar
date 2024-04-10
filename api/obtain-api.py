@@ -20,14 +20,19 @@ from gem5.simulate.simulator import Simulator
 
 # Test using simple ARM
 from gem5.isas import ISA
-from gem5.resources.resource import obtain_resource
+from gem5.resources.resource import *
 from gem5.components.memory import SingleChannelDDR3_1600
+from gem5.components.memory import single_channel
+from gem5.components.memory import multi_channel
 from gem5.components.boards.simple_board import SimpleBoard
 from gem5.components.boards.x86_board import X86Board
 from gem5.components.cachehierarchies.classic.no_cache import NoCache
 from gem5.components.cachehierarchies.classic.caches.l1icache import L1ICache
 from gem5.components.cachehierarchies.classic.caches.l1dcache import L1DCache
 from gem5.components.cachehierarchies.classic.caches.l2cache import L2Cache
+from gem5.components.cachehierarchies.classic.private_l1_shared_l2_cache_hierarchy import PrivateL1SharedL2CacheHierarchy
+from gem5.components.cachehierarchies.classic.private_l1_private_l2_cache_hierarchy import PrivateL1PrivateL2CacheHierarchy
+from gem5.components.cachehierarchies.classic.private_l1_cache_hierarchy import PrivateL1CacheHierarchy
 
 from gem5.components.processors.simple_processor import SimpleProcessor
 #
@@ -35,7 +40,17 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import inspect, json
 
 MemTypes = {name:obj for name,obj in inspect.getmembers(dram_interfaces, inspect.ismodule)}
+#MemTypes = {name:obj for name,obj in inspect.getmembers(dram_interfaces, inspect.ismodule)}
+def collect_memory_functions(module):
+    function_names = []
+    for name, obj in inspect.getmembers(module):
+        if inspect.isfunction(obj):
+            function_names.append(name)
+    return function_names
 
+# Collecting functions from both modules
+single_channel_memory = collect_memory_functions(single_channel)
+multi_channel_memory = collect_memory_functions(multi_channel)
 def get_init_parameters(*classes):
     class_params_dict = {}
     for cls in classes:
@@ -54,7 +69,7 @@ def get_cls(file, mask):
     return cls
 
 def get_board_types():
-    cache_types = ['NoCache', 'L1ICache', 'L1DCache', 'L2Cache'] # TODO - get from gem5 automatically
+    cache_types = ['NoCache', 'L1ICache', 'L1DCache', 'L2Cache', 'PrivateL1SharedL2CacheHierarchy','PrivateL1PrivateL2CacheHierarchy', 'PrivateL1CacheHierarchy'] # TODO - get from gem5 automatically
     cache_class_objects = [globals()[class_name] for class_name in cache_types]
     # List of the classes we want to inspect
     classes_to_inspect = [SimpleBoard, X86Board, SimpleProcessor, *cache_class_objects]
@@ -63,7 +78,6 @@ def get_board_types():
     for board in ['SimpleBoard', 'X86Board']:
         processor_info = board_info['SimpleProcessor']
         cache_hierarchy_info = {k: board_info[k] for k in cache_types}
-
         board_info[board] = {
             'clk_freq': [board_info[board][0]],  # Assuming clk_freq is a string and not another key
             'Memory': [board_info[board][2], "size"],  # Assuming memory is a string and not another key
@@ -82,10 +96,12 @@ def get_board_types():
     return board_types_b
 
 def get_mem_types():
-    mem_types = {}
-    for name, idx in MemTypes.items():
-        mem_types.update({name : get_cls(idx, 'DRAMInterface')})
+    # mem_types = {}
+    # for name, idx in MemTypes.items():
+    #     mem_types.update({name : get_cls(idx, 'DRAMInterface')})
+    mem_types = single_channel_memory + multi_channel_memory
     mem_types_b = json.dumps(mem_types, indent=2).encode('utf-8')
+    print("MTB", mem_types_b)
     return mem_types_b
 
 def get_cpu_types():
@@ -194,7 +210,8 @@ board = SimpleBoard(
     cache_hierarchy=NoCache()
 )
 board.set_se_binary_workload(
-    obtain_resource("x86-hello64-static")
+    # obtain_resource("x86-hello64-static")
+    BinaryResource("/home/m588h354/projects/GEM5/EAGER/gem5/configs/example/gem5_library/EAGER-Gem5-GUI/workloads/hello.out")
 )
 
 if __name__ == '__m5_main__':
