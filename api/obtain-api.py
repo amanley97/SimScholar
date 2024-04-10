@@ -217,7 +217,10 @@ def generate_config(board_info):
     mem = eval(board_info['Memory Configuration']['type'])
     msize = str(board_info['Memory Configuration']['size']) + "MB"
     cache = eval(board_info['Cache Configuration']['type'])
-    print(f"Clock Frequency: {clk}, \nCPU Type: {cpu}, \nISA: {isa}, \nNumber of Cores: {ncores}, \nMemory Type: {mem}, \nMemory Size: {msize}, \nCache Type: {cache}")
+    rtype = board_info['resource'][0]
+    resource = str(board_info['resource'][1])
+    print("\n======CONFIGURATION======")
+    print(f"Clock Frequency: {clk}, \nCPU Type: {cpu}, \nISA: {isa}, \nNumber of Cores: {ncores}, \nMemory Type: {mem}, \nMemory Size: {msize}, \nCache Type: {cache}, \nUsing Resource: {resource}\n")
 
     configuration = SimpleBoard(
         clk_freq=clk,
@@ -226,10 +229,16 @@ def generate_config(board_info):
         cache_hierarchy=NoCache()
     )
 
-    configuration.set_se_binary_workload(
-        obtain_resource("x86-hello64-static")
-        # BinaryResource("/home/m588h354/projects/GEM5/EAGER/gem5/configs/example/gem5_library/EAGER-Gem5-GUI/workloads/hello.out")
-    )
+    if rtype == 'default':
+        configuration.set_se_binary_workload(
+            obtain_resource(resource)
+        )
+    elif rtype == 'custom':
+        configuration.set_se_binary_workload(
+            BinaryResource(resource)
+        )
+    else:
+        print("invalid resource")
     return configuration
 
 if __name__ == '__m5_main__':

@@ -99,8 +99,8 @@ def http_request(api_endpoint, request_type, data=None):
         print(f"Request failed: {e}")
         return response
 
-def run_simulation(output_location, board_info):
-    # print(board_info)
+def run_simulation(output_location, board_info, resource):
+    board_info['resource'] = resource
     selected_opts = http_request("user-data", "PUT", board_info)
     # output = http_request("run-simulation", "PUT")
     output_location.config(text=str(selected_opts.text))

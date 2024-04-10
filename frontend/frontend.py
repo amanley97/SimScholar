@@ -84,7 +84,7 @@ def cfg_window(tab1):
     bottom_bar.grid(row=size*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky="we")
 
     # SIMULATE BUTTON
-    simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, render.sections), width=60)
+    simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, render.sections, resource.resource_selected), width=60)
     simulate_button.grid(row=size*3 + 3, column=1, padx=10, pady=5, sticky=tk.E)
 
     # DEFAULTS
