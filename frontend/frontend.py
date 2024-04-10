@@ -13,36 +13,11 @@
 # ----------------------------------------------------------------------------
 
 import tkinter as tk
-from tkinter import ttk
-import calls, image, render, debug, json, ide, stats
+from tkinter import ttk, PhotoImage
+import calls, image, render, debug, json, ide, stats, resource
 
-options = {
-    'boards' : {
-        'type' : ['Simple', 'x86', 'ARM'],
-        'clk' : 0
-    },
-    'processor' : {
-        'isa' : ['x86', 'ARM'],
-        'type' : ['atomic', 'o3', 'minor'],
-        'ncores' : 0
-    },
-    'memory' : {
-        'type' : ['SingleChannelDDR3_1600',
-                  'SingleChannelDDR4_2400',
-                  'DualChannelDDR4_2400'],
-        'size' : 0
-    },
-    'cache' : {
-        'type' : ['NoCache',
-                  'PrivateL1CacheHierarchy',
-                  'PrivateL1PrivateL2CacheHierarchy',
-                  'PrivateL1SharedL2CacheHierarchy'],
-        'l1d' : 0,
-        'l1i' : 0
-    }
-}
-
-
+opt = calls.get_gem5_data()[0]
+options = opt
 boards = options['boards']
 processors = options['processor']
 memories = options['memory']
@@ -52,6 +27,8 @@ def root_window():
     # Create the main window
     root = tk.Tk()
     root.title("eager    ->    the all-in-one gem5 environment")
+    img = PhotoImage(file='./icon.png')
+    root.iconphoto(True, img)
 
     notebook = ttk.Notebook(root)
     notebook.grid(row=1, column=0, columnspan=2, sticky="nsew")
@@ -70,7 +47,7 @@ def root_window():
 
 def cfg_tabs(master):
     tabs = ttk.Notebook(master)
-    tabs.grid(row=1, rowspan= 1, column=0, sticky="nsew")
+    tabs.grid(row=1, rowspan= 1, column=0, sticky="ns")
 
     tab1 = render.render_section(tabs, boards, "Board Configuration")
     tab2 = render.render_section(tabs, processors, "Processor Configuration")
@@ -99,20 +76,18 @@ def cfg_window(tab1):
     cfg_tabs(tab1)
 
     # RESOURCE MANAGER
-    resources = tk.Frame(tab1, background="darkgray")
-    resources.grid(row=2, rowspan=2, column=0, pady=10, sticky="nsew")
-    ttk.Label(resources, text="Resource Manager", font=('TkDefaultFont', 10, 'bold'), background="darkgray").pack(pady=(10, 5), padx=10, anchor='w')
-    
+    resource.rsrc_menu(tab1)
+
     # CANVAS
     canvas = tk.Canvas(tab1, width=600, height=400, bg="lightgray")
     canvas.grid(row=1, column=1, padx=10, pady=10, rowspan=len(section_menu)*2 + 1, columnspan=2, sticky=tk.W)
 
     # HINT BAR
     bottom_bar = tk.Label(tab1, text=hint, bd=1, relief=tk.SUNKEN, anchor=tk.W, bg="lightgray", fg="Black")
-    bottom_bar.grid(row=len(section_menu)*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky=tk.W+tk.E)
+    bottom_bar.grid(row=len(section_menu)*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky="we")
 
     # SIMULATE BUTTON
-    simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar), width=60)
+    simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, board_info), width=60)
     simulate_button.grid(row=len(section_menu)*3 + 3, column=1, padx=10, pady=5, sticky=tk.E)
 
     # DEFAULTS

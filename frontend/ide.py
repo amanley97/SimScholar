@@ -52,7 +52,7 @@ def compile(file_info):
         messagebox.showerror("Error", "File must be saved before compiling!")
     elif (file_info["compile_path"] == None):
         messagebox.showerror("Error", "Please specify executable path!")
-        file_info["compile_path"] = filedialog.asksaveasfilename(defaultextension="", filetypes=[("C Executable", ""), ("All files", "*.*")], initialdir="./workloads", title="Executable Path")
+        file_info["compile_path"] = filedialog.asksaveasfilename(defaultextension="", filetypes=[("C Binary", "*")], initialdir="./workloads", title="Save Binary As")
     
         srcname = file_info["file_path"]
         execpath = file_info["compile_path"]

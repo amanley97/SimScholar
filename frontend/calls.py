@@ -99,7 +99,7 @@ def http_request(api_endpoint, request_type, data=None):
         print(f"Request failed: {e}")
         return response
 
-def run_simulation(output_location):
+def run_simulation(output_location, board_info):
     output = http_request("run-simulation", "PUT")
     output_location.config(text=str(output.text))
 

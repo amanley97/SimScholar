@@ -39,8 +39,10 @@ def populate_frame(frame, data, label=""):
                 if isinstance(value, list):
                     var = tk.StringVar(row_frame)
                     var.set(value[0])  # default value
-                    dropdown = ttk.OptionMenu(row_frame, var, *value)
+                    dropdown = tk.OptionMenu(row_frame, var, *value)
                     dropdown.pack(side='right', fill='x', expand=True)
                 elif isinstance(value, int):
-                    entry = ttk.Entry(row_frame)
+                    intvar = tk.IntVar(row_frame)
+                    intvar.set(value)
+                    entry = tk.Entry(row_frame, textvariable=intvar)
                     entry.pack(side='right', fill='x', expand=True)
