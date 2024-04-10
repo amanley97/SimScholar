@@ -61,10 +61,7 @@ def cfg_tabs(master):
 
 
 def cfg_window(tab1):
-    # Obtain gem5 data
-    options = calls.get_gem5_data()
-    # print(options)
-    section_menu = options[0]
+    size = len(options)
 
     # Create dropdown menus, labels, and variables
     hint = str("Hints: Some helpful information here")
@@ -80,15 +77,15 @@ def cfg_window(tab1):
 
     # CANVAS
     canvas = tk.Canvas(tab1, width=600, height=400, bg="lightgray")
-    canvas.grid(row=1, column=1, padx=10, pady=10, rowspan=len(section_menu)*2 + 1, columnspan=2, sticky=tk.W)
+    canvas.grid(row=1, column=1, padx=10, pady=10, rowspan=size*2 + 1, columnspan=2, sticky=tk.W)
 
     # HINT BAR
-    bottom_bar = tk.Label(tab1, text=hint, bd=1, relief=tk.SUNKEN, anchor=tk.W, bg="lightgray", fg="Black")
-    bottom_bar.grid(row=len(section_menu)*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky="we")
+    bottom_bar = tk.Label(tab1, text=hint, bd=1, relief=tk.SUNKEN, anchor=tk.W, bg="lightgray", fg="Black", wraplength=0)
+    bottom_bar.grid(row=size*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky="we")
 
     # SIMULATE BUTTON
-    simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, board_info), width=60)
-    simulate_button.grid(row=len(section_menu)*3 + 3, column=1, padx=10, pady=5, sticky=tk.E)
+    simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, render.sections), width=60)
+    simulate_button.grid(row=size*3 + 3, column=1, padx=10, pady=5, sticky=tk.E)
 
     # DEFAULTS
     canvas.delete("all")

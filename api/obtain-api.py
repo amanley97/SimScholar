@@ -90,7 +90,7 @@ def get_board_types():
 
     board_types = {}
     for name, idx in board_info.items():
-        print(name, idx)
+        # print(name, idx)
         board_types.update({name : idx})
     board_types_b = json.dumps(board_types, indent=2).encode('utf-8')
     return board_types_b
@@ -101,7 +101,7 @@ def get_mem_types():
     #     mem_types.update({name : get_cls(idx, 'DRAMInterface')})
     mem_types = single_channel_memory + multi_channel_memory
     mem_types_b = json.dumps(mem_types, indent=2).encode('utf-8')
-    print("MTB", mem_types_b)
+    # print("MTB", mem_types_b)
     return mem_types_b
 
 def get_cpu_types():
@@ -151,9 +151,9 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(get_board_types())
 
-    def handle_run_simulator(self):
+    def handle_run_simulator(self, brd):
         print("PRESSED SIMULATION")
-        process = multiprocessing.Process(target=run_gem5_simulator)
+        process = multiprocessing.Process(target=run_gem5_simulator(brd))
         process.start()
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
@@ -176,19 +176,24 @@ class SimpleHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             data = self.rfile.read(content_length)
             received_data = json.loads(data.decode('utf-8'))
-            response_data = {"received_data": received_data}
-            print(response_data)
-            # Send a JSON response
+
+            board = generate_config(received_data)
             self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b"User data recieved.\n")
+
+            process = multiprocessing.Process(target=run_gem5_simulator(board))
+            process.start()
+            self.wfile.write(b"Simulator started in a separate thread\n")
+            process.join()
+        
+            self.wfile.write(b"Simulation Complete\n")
 
         except Exception as e:
             # Handle any exceptions that might occur during processing
             print(f"Error processing PUT request: {e}")
             self.send_response(500, {"error": "Internal Server Error"})
-        self.send_header('Content-type', 'text/plain')
-        self.end_headers()
-        self.wfile.write(b"User data recieved.\n")
-
 #=============================================================#
 
 def run_server(port=5000):
@@ -198,21 +203,34 @@ def run_server(port=5000):
     print(f'Starting server on port {port}...')
     httpd.serve_forever()
 
-def run_gem5_simulator():
-        print("PID: ", os.getpid())
-        simulator = Simulator(board=board)
-        simulator.run()
+def run_gem5_simulator(board_obj):
+    print("PID: ", os.getpid())
 
-board = SimpleBoard(
-    clk_freq="3GHz",
-    processor=SimpleProcessor(cpu_type=CPUTypes.TIMING, isa=ISA.X86, num_cores=1),
-    memory=SingleChannelDDR3_1600(size="32MB"),
-    cache_hierarchy=NoCache()
-)
-board.set_se_binary_workload(
-    # obtain_resource("x86-hello64-static")
-    BinaryResource("/home/m588h354/projects/GEM5/EAGER/gem5/configs/example/gem5_library/EAGER-Gem5-GUI/workloads/hello.out")
-)
+    simulator = Simulator(board=board_obj)
+    simulator.run()
+
+def generate_config(board_info):
+    clk = str(board_info['Board Configuration']['clk']) + "GHz"
+    cpu = eval("CPUTypes." + str(board_info['Processor Configuration']['type']).upper())
+    isa = eval(board_info['Processor Configuration']['isa'])
+    ncores = int(board_info['Processor Configuration']['ncores'])
+    mem = eval(board_info['Memory Configuration']['type'])
+    msize = str(board_info['Memory Configuration']['size']) + "MB"
+    cache = eval(board_info['Cache Configuration']['type'])
+    print(f"Clock Frequency: {clk}, \nCPU Type: {cpu}, \nISA: {isa}, \nNumber of Cores: {ncores}, \nMemory Type: {mem}, \nMemory Size: {msize}, \nCache Type: {cache}")
+
+    configuration = SimpleBoard(
+        clk_freq=clk,
+        processor=SimpleProcessor(cpu_type=cpu, isa=isa, num_cores=ncores),
+        memory=mem(size=msize),
+        cache_hierarchy=NoCache()
+    )
+
+    configuration.set_se_binary_workload(
+        obtain_resource("x86-hello64-static")
+        # BinaryResource("/home/m588h354/projects/GEM5/EAGER/gem5/configs/example/gem5_library/EAGER-Gem5-GUI/workloads/hello.out")
+    )
+    return configuration
 
 if __name__ == '__m5_main__':
     run_server()

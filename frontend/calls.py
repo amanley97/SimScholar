@@ -17,16 +17,16 @@ import requests, json
 opt = {
     'boards' : {
         'type' : [],
-        'clk' : 0
+        'clk' : 3
     },
     'processor' : {
         'isa' : ['ISA.X86', 'ISA.ARM'], # TODO
         'type' : [],
-        'ncores' : 0
+        'ncores' : 1
     },
     'memory' : {
         'type' : [],
-        'size' : 0
+        'size' : 2048
     },
     'cache' : {
         'type' : [],
@@ -100,8 +100,10 @@ def http_request(api_endpoint, request_type, data=None):
         return response
 
 def run_simulation(output_location, board_info):
-    output = http_request("run-simulation", "PUT")
-    output_location.config(text=str(output.text))
+    # print(board_info)
+    selected_opts = http_request("user-data", "PUT", board_info)
+    # output = http_request("run-simulation", "PUT")
+    output_location.config(text=str(selected_opts.text))
 
 def exit(root, debug=None):
     http_request("shutdown", "PUT")
