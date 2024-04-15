@@ -70,7 +70,7 @@ def get_cls(file, mask):
     return cls
 
 def get_board_types():
-    cache_types = ['NoCache', 'L1ICache', 'L1DCache', 'L2Cache', 'PrivateL1SharedL2CacheHierarchy','PrivateL1PrivateL2CacheHierarchy', 'PrivateL1CacheHierarchy'] # TODO - get from gem5 automatically
+    cache_types = ['NoCache', 'PrivateL1SharedL2CacheHierarchy','PrivateL1PrivateL2CacheHierarchy', 'PrivateL1CacheHierarchy'] # TODO - get from gem5 automatically
     cache_class_objects = [globals()[class_name] for class_name in cache_types]
     # List of the classes we want to inspect
     classes_to_inspect = [SimpleBoard, X86Board, SimpleProcessor, *cache_class_objects]
@@ -192,7 +192,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
             user_id = 'default'
             SimpleHandler.user_data_storage[user_id] = received_data
-            print("RESPONSE => ", SimpleHandler.user_data_storage.get(user_id))
+            # print("RESPONSE => ", SimpleHandler.user_data_storage.get(user_id))
             self.send_response(200)
 
         except Exception as e:
@@ -216,7 +216,7 @@ def run_server(port=5000):
 def run_gem5_simulator():
     print("PID: ", os.getpid())
     user_id = 'default'
-    print("RESPONSE AFTER => ", SimpleHandler.user_data_storage.get(user_id))
+    # print("RESPONSE AFTER => ", SimpleHandler.user_data_storage.get(user_id))
     data = SimpleHandler.user_data_storage.get(user_id)
     global boardd
     if boardd is None:

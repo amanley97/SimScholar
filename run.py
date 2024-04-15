@@ -13,25 +13,43 @@
 # ----------------------------------------------------------------------------
 
 import subprocess, time
+def prRed(skk): print("\033[91m{}\033[00m".format(skk))
+def prGreen(skk): print("\033[92m{}\033[00m".format(skk))
+
 path = {
-    "backend" : "./api/obtain-api.py",
+    "backend" : "./api/backend.py",
     "frontend" : "./frontend/frontend.py"
 }
 
 def run_backend():
     cmd = ["gem5.opt", path["backend"]]
-    print("Starting backend")
+    prGreen("[Starting Backend]")
     p = subprocess.Popen(cmd)
     return p
 
 def run_frontend():
     cmd = ["python3", path["frontend"]]
-    print("Starting Frontend")
+    prGreen("\n[Starting Frontend]")
     p = subprocess.Popen(cmd)
     p.wait()
 
+def check_port(port):
+    cmd = f"sudo netstat -anp | grep -E :{port}"
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    output, errors = p.communicate()
+
+    if p.returncode == 0 and output:  # Check if grep found anything
+        prRed("[Error]")
+        print(f"Port {port} is in use!\n")
+        print(f"Please kill the following process:\n{output}")
+    else:
+        print(f"Port {port} is available.\n")
+    return p.returncode
+
 if __name__ == '__main__':
-    pb = run_backend()
-    time.sleep(5)
-    run_frontend()
-    pb.kill()
+    port = 5000
+    if check_port(port):
+        pb = run_backend()
+        time.sleep(5)
+        run_frontend()
+        pb.kill()
