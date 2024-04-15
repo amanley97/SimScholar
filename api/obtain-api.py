@@ -11,13 +11,14 @@
 #         Alex Manley (amanley97@ku.edu)
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
-
+import copy
 import os, multiprocessing
 from gem5.components.processors.cpu_types import *
 from gem5.components.memory import *
 from gem5.components import *
 from gem5.simulate.simulator import Simulator
 
+from m5.stats import *
 # Test using simple ARM
 from gem5.isas import ISA
 from gem5.resources.resource import *
@@ -108,10 +109,10 @@ def get_cpu_types():
     cpu_types = list(get_cpu_types_str_set())
     cpu_types_b = json.dumps(cpu_types, indent=2).encode('utf-8')
     return cpu_types_b
-
+boardd = None
 #=============================================================#
-
 class SimpleHandler(BaseHTTPRequestHandler):
+    user_data_storage = {}
 
     def do_GET(self):
         if self.path == '/get-mem-types':
@@ -151,17 +152,24 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(get_board_types())
 
-    def handle_run_simulator(self, brd):
+    def handle_run_simulator(self):
         print("PRESSED SIMULATION")
-        process = multiprocessing.Process(target=run_gem5_simulator(brd))
+        process = multiprocessing.Process(target=run_gem5_simulator)
+        # process = multiprocessing.Process(target=run_gem5_simulator, args=(boardd,))
         process.start()
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
         self.wfile.write(b"Simulator started in a separate thread\n")
+        # process.terminate()
         process.join()
-        
+
         self.wfile.write(b"Simulation Complete\n")
+    def handle_parse_simulation_output(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write()
 
     def handle_shutdown(self):
         # TODO: Ensure the backend server and port are closed
@@ -171,29 +179,31 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"Shutting down server\n")
 
+
+
+    def get_user_data(cls, user_id):
+        # Method to retrieve data for a given user
+        return cls.user_data_storage.get(user_id)
     def handle_user_data(self):
         try:
             content_length = int(self.headers['Content-Length'])
             data = self.rfile.read(content_length)
             received_data = json.loads(data.decode('utf-8'))
 
-            board = generate_config(received_data)
+            user_id = 'default'
+            SimpleHandler.user_data_storage[user_id] = received_data
+            print("RESPONSE => ", SimpleHandler.user_data_storage.get(user_id))
             self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b"User data recieved.\n")
-
-            process = multiprocessing.Process(target=run_gem5_simulator(board))
-            process.start()
-            self.wfile.write(b"Simulator started in a separate thread\n")
-            process.join()
-        
-            self.wfile.write(b"Simulation Complete\n")
 
         except Exception as e:
             # Handle any exceptions that might occur during processing
             print(f"Error processing PUT request: {e}")
             self.send_response(500, {"error": "Internal Server Error"})
+
+        self.end_headers()
+        response = bytes(json.dumps({'status': 'success'}), 'utf-8')
+        self.wfile.write(response)
+
 #=============================================================#
 
 def run_server(port=5000):
@@ -203,11 +213,29 @@ def run_server(port=5000):
     print(f'Starting server on port {port}...')
     httpd.serve_forever()
 
-def run_gem5_simulator(board_obj):
+def run_gem5_simulator():
     print("PID: ", os.getpid())
-
-    simulator = Simulator(board=board_obj)
+    user_id = 'default'
+    print("RESPONSE AFTER => ", SimpleHandler.user_data_storage.get(user_id))
+    data = SimpleHandler.user_data_storage.get(user_id)
+    global boardd
+    if boardd is None:
+        boardd = generate_config(data)
+    else:
+        del boardd
+        boardd = generate_config(data)
+    simulator = Simulator(board=boardd)
     simulator.run()
+    print(
+    "Exiting @ tick {} because {}.".format(
+        simulator.get_current_tick(), simulator.get_last_exit_event_cause()
+        )
+    )
+    dump()
+    reset()
+    # m5.statsreset()
+
+
 
 def generate_config(board_info):
     clk = str(board_info['Board Configuration']['clk']) + "GHz"
@@ -240,6 +268,7 @@ def generate_config(board_info):
     else:
         print("invalid resource")
     return configuration
+
 
 if __name__ == '__m5_main__':
     run_server()

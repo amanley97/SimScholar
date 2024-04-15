@@ -100,10 +100,16 @@ def http_request(api_endpoint, request_type, data=None):
         return response
 
 def run_simulation(output_location, board_info, resource):
+    print("BBBB \n", board_info)
     board_info['resource'] = resource
+    user_id = board_info.get('user_id')
     selected_opts = http_request("user-data", "PUT", board_info)
     # output = http_request("run-simulation", "PUT")
     output_location.config(text=str(selected_opts.text))
+
+def run_simulation_org(output_location, board_info, resource):
+    output = http_request("run-simulation", "PUT")
+    output_location.config(text=str(output.text))
 
 def exit(root, debug=None):
     http_request("shutdown", "PUT")

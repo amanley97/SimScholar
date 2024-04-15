@@ -27,7 +27,7 @@ def root_window():
     # Create the main window
     root = tk.Tk()
     root.title("eager    ->    the all-in-one gem5 environment")
-    img = PhotoImage(file='./icon.png')
+    img = PhotoImage(file='/home/m588h354/projects/GEM5/EAGER/gem5/configs/example/gem5_library/EAGER-Gem5-GUI/icon.png')
     root.iconphoto(True, img)
 
     notebook = ttk.Notebook(root)
@@ -84,8 +84,12 @@ def cfg_window(tab1):
     bottom_bar.grid(row=size*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky="we")
 
     # SIMULATE BUTTON
-    simulate_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, render.sections, resource.resource_selected), width=60)
-    simulate_button.grid(row=size*3 + 3, column=1, padx=10, pady=5, sticky=tk.E)
+    simulate_button = tk.Button(tab1, text="Gen", command=lambda: calls.run_simulation(bottom_bar, render.sections, resource.resource_selected), width=60)
+    simulate_button.grid(row=size*3 + 3, column=1, padx=5, pady=5, sticky=tk.E)
+
+    gen_button = tk.Button(tab1, text="Sim", command=lambda: calls.run_simulation_org(bottom_bar, render.sections, resource.resource_selected), width=60)
+
+    gen_button.grid(row=size * 3 + 3, column=2, padx=2, pady=2, sticky=tk.E)
 
     # DEFAULTS
     canvas.delete("all")
