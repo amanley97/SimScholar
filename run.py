@@ -34,7 +34,7 @@ def run_frontend():
     p.wait()
 
 def check_port(port):
-    cmd = f"sudo netstat -anp | grep -E :{port}"
+    cmd = f"sudo netstat -anp | grep :{port} | grep LISTEN"
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     output, errors = p.communicate()
 
