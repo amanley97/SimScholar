@@ -14,20 +14,26 @@
 
 import tkinter as tk
 from tkinter import ttk
+from printdebug import printdebug
 sections = {}
+cache_entries = []
 
 def render_section(master, opts, title):
     # Create a section frame
     section_frame = tk.Frame(master, background="darkgray")
 
     #Populate it!!
+    printdebug(f"[render] rendering section {title}")
     sections[title] = populate_frame(section_frame, opts, title)
+
     return section_frame
 
 def update_selected(title, key, newval):
     oldval = sections[title][key]
     if newval.get() != oldval:
         sections[title][key] = newval.get()
+    if title == "Cache Configuration":
+        cache_select(key)
 
 def populate_frame(frame, data, label=""):
     saved_opts = {}
@@ -51,4 +57,29 @@ def populate_frame(frame, data, label=""):
             entry.pack(side='right', fill='x', expand=True)
             saved_opts[key] = intvar.get()
             entry.bind("<Return>", lambda event=None, t=label, d=key, v=intvar: update_selected(t, d, v))
+            if label == "Cache Configuration":
+                entry.config(state='disabled')
+                cache_entries.append(entry)
     return saved_opts
+
+def cache_select(type):
+    cache_type = sections['Cache Configuration'][type]
+    l1d_size = cache_entries[0]
+    l1i_size = cache_entries[1]
+    l2_size = cache_entries[2]
+    if cache_type == 'NoCache':
+        printdebug("[render] selected no cache")
+        l1d_size.config(state='disabled') # disable L1I size
+        l1i_size.config(state='disabled') # disable L1D size
+        l2_size.config(state='disabled') # disable L2 size
+    elif cache_type == 'PrivateL1CacheHierarchy':
+        printdebug("[render] selected L1 only")
+        l1d_size.config(state='normal') # enable L1I size
+        l1i_size.config(state='normal') # enable L1D size
+        l2_size.config(state='disabled') # disable L2 size
+    elif cache_type == 'PrivateL1PrivateL2CacheHierarchy' or cache_type == 'PrivateL1SharedL2CacheHierarchy':
+        printdebug("[render] selected L1 and L2")
+        l1d_size.config(state='normal') # enable L1I size
+        l1i_size.config(state='normal') # enable L1D size
+        l2_size.config(state='normal') # enable L2 size
+    

@@ -13,8 +13,7 @@
 # ----------------------------------------------------------------------------
 
 import subprocess, time
-def prRed(skk): print("\033[91m{}\033[00m".format(skk))
-def prGreen(skk): print("\033[92m{}\033[00m".format(skk))
+from frontend.printdebug import printdebug
 
 path = {
     "backend" : "./api/backend.py",
@@ -23,13 +22,13 @@ path = {
 
 def run_backend():
     cmd = ["gem5.opt", path["backend"]]
-    prGreen("[Starting Backend]")
+    printdebug("[Starting Backend]", color='green')
     p = subprocess.Popen(cmd)
     return p
 
 def run_frontend():
     cmd = ["python3", path["frontend"]]
-    prGreen("\n[Starting Frontend]")
+    printdebug("\n[Starting Frontend]", color='green')
     p = subprocess.Popen(cmd)
     p.wait()
 
@@ -39,11 +38,10 @@ def check_port(port):
     output, errors = p.communicate()
 
     if p.returncode == 0 and output:  # Check if grep found anything
-        prRed("[Error]")
-        print(f"Port {port} is in use!\n")
-        print(f"Please kill the following process:\n{output}")
+        printdebug(f"[Error] Port {port} is in use!", color='red')
+        printdebug(f"[Error] Please kill the following process:\n{output}", color='red')
     else:
-        print(f"Port {port} is available.\n")
+        printdebug(f"[run] Port {port} is available.\n", color='green')
     return p.returncode
 
 if __name__ == '__main__':

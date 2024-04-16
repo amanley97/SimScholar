@@ -13,8 +13,9 @@
 # ----------------------------------------------------------------------------
 
 import tkinter as tk
-from tkinter import ttk, PhotoImage
-import calls, image, render, debug, json, ide, stats, resource
+from tkinter import ttk, PhotoImage, messagebox
+import calls, render, ide, stats, resource
+from printdebug import printdebug
 
 opt = calls.get_gem5_data()[0]
 options = opt
@@ -23,11 +24,18 @@ processors = options['processor']
 memories = options['memory']
 caches = options['cache']
 
+def verify(loc, sections, res):
+    printdebug("[frontend] verifying resource")
+    if len(res) != 0:
+        calls.configure_simulation(loc, sections, res)
+    else:
+        messagebox.showerror("Error", "No Simulation Resource Selected!")
+
 def root_window():
     # Create the main window
     root = tk.Tk()
     root.title("eager    ->    the all-in-one gem5 environment")
-    img = PhotoImage(file='frontend/icon.png')
+    img = PhotoImage(file='frontend/assets/icon.png')
     root.iconphoto(True, img)
 
     notebook = ttk.Notebook(root)
@@ -84,11 +92,10 @@ def cfg_window(tab1):
     bottom_bar.grid(row=size*3 + 2, column=0, columnspan=3, padx=5, pady=5, sticky="we")
 
     # SIMULATE BUTTON
-    simulate_button = tk.Button(tab1, text="Configure", command=lambda: calls.run_simulation(bottom_bar, render.sections, resource.resource_selected), width=30)
+    simulate_button = tk.Button(tab1, text="Configure", command=lambda: verify(bottom_bar, render.sections, resource.resource_selected), width=30)
     simulate_button.grid(row=size*3 + 3, column=1, padx=5, pady=5, sticky=tk.E)
 
-    gen_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation_org(bottom_bar, render.sections, resource.resource_selected), width=30)
-
+    gen_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, render.sections, resource.resource_selected), width=30)
     gen_button.grid(row=size * 3 + 3, column=2, padx=2, pady=2, sticky=tk.E)
 
     # DEFAULTS

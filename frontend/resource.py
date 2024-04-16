@@ -14,16 +14,19 @@
 
 import tkinter as tk
 from tkinter import ttk, filedialog
+from printdebug import printdebug
 resource_selected = []
 
 def select_custom_binary():
     global resource_selected
-    binary = filedialog.askopenfilename(defaultextension="", filetypes=[("Binaries", "*")], initialdir="./workloads", title="Select Custom Binary")
+    binary = filedialog.askopenfilename(defaultextension="", filetypes=[("Binaries", "*.out")], initialdir="./workloads", title="Select Custom Binary")
     resource_selected = ['custom', binary]
+    printdebug(f'[resource] {resource_selected[1]}')
 
 def select_gem5_binary(binary):
     global resource_selected
     resource_selected = ['default', binary]
+    printdebug(f'[resource] {resource_selected}')
 
 def rsrc_menu(master):
 # RESOURCE MANAGER

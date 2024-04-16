@@ -15,19 +15,23 @@
 import tkinter as tk
 from tkinter import filedialog, Menu, Menubutton, messagebox
 import subprocess
+from printdebug import printdebug
 
 def save_as_file(text, file_info):
     file_info['file_path'] = None
     file_info['compile_path'] = None
+    printdebug(f"[ide] save file as")
     save_file(text, file_info)
 
 def save_file(text, file_info):
     if 'file_path' in file_info and file_info['file_path']:  # Check if there is a previously saved file
+        printdebug(f"[ide] saving file: {file_info['file_path']}")
         with open(file_info['file_path'], "w") as file:
             text_content = text.get("1.0", "end-1c")
             file.write(text_content)
     else:
         file_path = filedialog.asksaveasfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./workloads")
+        printdebug(f"[ide] saving file: {file_path}")
         if file_path:
             with open(file_path, "w") as file:
                 text_content = text.get("1.0", "end-1c")
@@ -36,6 +40,7 @@ def save_file(text, file_info):
 
 def open_file(text, file_info, func):
     file_path = filedialog.askopenfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./workloads")
+    printdebug(f"[ide] opening file: {file_path}")
     if file_path:
         with open(file_path, "r") as file:
             file_content = file.read()
@@ -45,14 +50,13 @@ def open_file(text, file_info, func):
         func()
 
 def compile(file_info):
-    print("Compiling")
-    print(file_info)
+    printdebug("[ide] compiling user program")
 
     if (file_info["file_path"] == None):
         messagebox.showerror("Error", "File must be saved before compiling!")
     elif (file_info["compile_path"] == None):
         messagebox.showerror("Error", "Please specify executable path!")
-        file_info["compile_path"] = filedialog.asksaveasfilename(defaultextension="", filetypes=[("C Binary", "*")], initialdir="./workloads", title="Save Binary As")
+        file_info["compile_path"] = filedialog.asksaveasfilename(defaultextension="", filetypes=[("C Binary", "*.out")], initialdir="./workloads", title="Save Binary As")
     
         srcname = file_info["file_path"]
         execpath = file_info["compile_path"]
@@ -102,9 +106,6 @@ def code_window(tab):
 
     line_numbers = tk.Text(tab, width=4, padx=2, borderwidth=0, highlightthickness=0, background="gray", foreground="white", state=tk.DISABLED)
     line_numbers.grid(row=1, column=0, sticky="ns", padx=(0, 20))
-
-    # workload_name = tk.Text(tab, width=60, height=1, padx=2, borderwidth=0, highlightthickness=0)
-    # workload_name.grid(row=2, column=1, pady=5, sticky=tk.E)
 
     compile_button = tk.Button(tab, text="Compile", command=lambda: compile(file_info), width=60)
     compile_button.grid(row=3, column=1, padx=10, pady=5, sticky=tk.E)
