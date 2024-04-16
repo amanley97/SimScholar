@@ -21,12 +21,12 @@ def select_custom_binary():
     global resource_selected
     binary = filedialog.askopenfilename(defaultextension="", filetypes=[("Binaries", "*.out")], initialdir="./workloads", title="Select Custom Binary")
     resource_selected = ['custom', binary]
-    printdebug(f'[resource] {resource_selected[1]}')
+    printdebug(f'[resource] selected: {resource_selected[1]}')
 
 def select_gem5_binary(binary):
     global resource_selected
     resource_selected = ['default', binary]
-    printdebug(f'[resource] {resource_selected}')
+    printdebug(f'[resource] selected: {resource_selected[1]}')
 
 def rsrc_menu(master):
 # RESOURCE MANAGER
@@ -39,9 +39,11 @@ def rsrc_menu(master):
     ttk.Label(resources, text="Resource Manager", font=('TkDefaultFont', 10, 'bold'), background="darkgray").pack(pady=(10, 5), padx=10, anchor='w')
 
     def show_resource(resource_type):
+        global resource_selected
         r = resource_type.get()
         if r == 'default':
             custom_button.pack_forget()
+            resource_selected = ['default', gem5_resources[0]]
             menu.pack(pady=(10, 5), padx=10, anchor='se')
         elif r == 'custom':
             menu.pack_forget()
@@ -68,7 +70,8 @@ def rsrc_menu(master):
                    resource_binary,
                    *gem5_resources,
                    command=lambda t=resource_binary: select_gem5_binary(t))
+    resource_binary.set(gem5_resources[0])
     
-    custom_button = tk.Button(resources, 
+    custom_button = ttk.Button(resources, 
                               text="Select Binary", 
                               command=select_custom_binary)

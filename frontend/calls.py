@@ -12,7 +12,8 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
-import requests, json    
+import requests, json
+from printdebug import printdebug
 
 opt = {
     'boards' : {
@@ -61,26 +62,12 @@ def get_gem5_data():
 
     mem_req = http_request("get-mem-types", "GET")
     mem_types_o = mem_req.json() if mem_req.status_code == 200 else ["NULL"]
-    # mem_types = []
-    # for mem_type, mem_configs in mem_types_o.items():
-    #     for type in mem_configs:
-    #       mem_types.append(type)
+
     opt['memory']['type'] = mem_types_o
-    # return [board_types, cpu_types]
     return [opt]
 
 def http_request(api_endpoint, request_type, data=None):
-    """
-    Handles HTTP requests based on the provided endpoint and request type.
 
-    Parameters:
-    - api_endpoint (str): The API endpoint URL.
-    - request_type (str): The HTTP request type (e.g., 'GET', 'PUT', 'POST').
-    - data (dict, optional): Data to be included in the request body (for 'PUT' or 'POST').
-
-    Returns:
-    - response (requests.Response): The response object from the HTTP request.
-    """
     headers = {"Content-Type": "application/json"}
     full_url = f"http://localhost:5000/{api_endpoint}"
 
@@ -93,35 +80,22 @@ def http_request(api_endpoint, request_type, data=None):
             response = requests.post(full_url, data=json.dumps(data), headers=headers)
         else:
             raise ValueError("Invalid request type. Supported types are 'GET', 'PUT', and 'POST'.")
-        print(f"Request {request_type} for {api_endpoint} successful.")
+        printdebug(f"[calls] {request_type} for {api_endpoint} successful.")
         return response
     
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
         return response
 
-def run_simulation(output_location, board_info, resource):
-    # print("BBBB \n", board_info)
+def configure_simulation(output_location, board_info, resource):
+    printdebug("[calls] configuration sent to gem5")
     board_info['resource'] = resource
     user_id = board_info.get('user_id')
     selected_opts = http_request("user-data", "PUT", board_info)
     # output = http_request("run-simulation", "PUT")
     output_location.config(text=str(selected_opts.text))
 
-def run_simulation_org(output_location, board_info, resource):
+def run_simulation(output_location, board_info, resource):
+    printdebug("[calls] running the simulation!")
     output = http_request("run-simulation", "PUT")
     output_location.config(text=str(output.text))
-
-def exit(root, debug=None):
-    http_request("shutdown", "PUT")
-    root.destroy()
-    if debug != None:
-        debug.destroy()
-
-def print_selected(list, label):
-    result_dict = {}
-    for label, stringvar in zip(label, list):
-        value = stringvar.get()
-        result_dict[label] = value
-    data_test = http_request("user-data", "PUT", result_dict)
-    print(data_test.text)
