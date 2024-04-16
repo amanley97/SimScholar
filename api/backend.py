@@ -243,7 +243,28 @@ def generate_config(board_info):
     ncores = int(board_info['Processor Configuration']['ncores'])
     mem = eval(board_info['Memory Configuration']['type'])
     msize = str(board_info['Memory Configuration']['size']) + "MB"
-    cache = eval(board_info['Cache Configuration']['type'])
+    cache_type = board_info['Cache Configuration']['type']
+    cache = None
+    if cache_type == "NoCache":
+        cache = eval(board_info['Cache Configuration']['type'] + "()")
+    elif cache_type == "PrivateL1CacheHierarchy":
+        cache = PrivateL1CacheHierarchy(
+            l1d_size = str(board_info['Cache Configuration']['l1d_size']) + "KiB",
+            l1i_size = str(board_info['Cache Configuration']['l1i_size']) + "KiB"
+        )
+    elif cache_type == "PrivateL1SharedL2CacheHierarchy":
+        cache = PrivateL1PrivateL2CacheHierarchy(
+            l1d_size=str(board_info['Cache Configuration']['l1d_size']) + "KiB",
+            l1i_size=str(board_info['Cache Configuration']['l1i_size']) + "KiB",
+            l2_size=str(board_info['Cache Configuration']['l2_size']) + "KiB"
+        )
+    elif cache_type == "PrivateL1PrivateL2CacheHierarchy":
+        cache = PrivateL1PrivateL2CacheHierarchy(
+            l1d_size = str(board_info['Cache Configuration']['l1d_size']) + "KiB",
+            l1i_size = str(board_info['Cache Configuration']['l1i_size']) + "KiB",
+            l2_size = str(board_info['Cache Configuration']['l2_size']) + "KiB"
+        )
+
     rtype = board_info['resource'][0]
     resource = str(board_info['resource'][1])
     print("\n======CONFIGURATION======")
@@ -253,7 +274,7 @@ def generate_config(board_info):
         clk_freq=clk,
         processor=SimpleProcessor(cpu_type=cpu, isa=isa, num_cores=ncores),
         memory=mem(size=msize),
-        cache_hierarchy=NoCache()
+        cache_hierarchy=cache
     )
 
     if rtype == 'default':
