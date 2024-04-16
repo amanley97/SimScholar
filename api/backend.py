@@ -12,7 +12,7 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 import copy
-import os, multiprocessing
+import os, multiprocessing, sys
 from gem5.components.processors.cpu_types import *
 from gem5.components.memory import *
 from gem5.components import *
@@ -153,7 +153,6 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.wfile.write(get_board_types())
 
     def handle_run_simulator(self):
-        print("PRESSED SIMULATION")
         process = multiprocessing.Process(target=run_gem5_simulator)
         # process = multiprocessing.Process(target=run_gem5_simulator, args=(boardd,))
         process.start()
@@ -178,8 +177,6 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
         self.wfile.write(b"Shutting down server\n")
-
-
 
     def get_user_data(cls, user_id):
         # Method to retrieve data for a given user
@@ -214,27 +211,29 @@ def run_server(port=5000):
 
 def run_gem5_simulator():
     print("PID: ", os.getpid())
-    user_id = 'default'
-    # print("RESPONSE AFTER => ", SimpleHandler.user_data_storage.get(user_id))
-    data = SimpleHandler.user_data_storage.get(user_id)
-    global boardd
-    if boardd is None:
-        boardd = generate_config(data)
-    else:
-        del boardd
-        boardd = generate_config(data)
-    simulator = Simulator(board=boardd)
-    simulator.run()
-    print(
-    "Exiting @ tick {} because {}.".format(
-        simulator.get_current_tick(), simulator.get_last_exit_event_cause()
+    with open('../output.txt', "w") as f:
+        sys.stdout = f
+        sys.stderr = f
+        user_id = 'default'
+        data = SimpleHandler.user_data_storage.get(user_id)
+        global boardd
+        if boardd is None:
+            boardd = generate_config(data)
+        else:
+            del boardd
+            boardd = generate_config(data)
+        simulator = Simulator(board=boardd)
+        simulator.run()
+        print(
+        "Exiting @ tick {} because {}.".format(
+            simulator.get_current_tick(), simulator.get_last_exit_event_cause()
+            )
         )
-    )
+        sys.stdout.flush()
+        sys.stderr.flush()
     dump()
     reset()
     # m5.statsreset()
-
-
 
 def generate_config(board_info):
     brd = str(board_info['Board Configuration']['type'])

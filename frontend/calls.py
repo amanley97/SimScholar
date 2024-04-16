@@ -95,7 +95,23 @@ def configure_simulation(output_location, board_info, resource):
     # output = http_request("run-simulation", "PUT")
     output_location.config(text=str(selected_opts.text))
 
-def run_simulation(output_location, board_info, resource):
+def run_simulation(output_location, canvas):
     printdebug("[calls] running the simulation!")
     output = http_request("run-simulation", "PUT")
     output_location.config(text=str(output.text))
+    display_sim_out(canvas)
+
+def display_sim_out(canvas):
+    # Clear previous content
+    canvas.delete("all")
+    
+    # Read and display the new file content
+    with open('../output.txt', 'r') as file:
+        text = file.read()
+
+        # Position to start drawing text
+        x = 10
+        y = 10
+        for line in text.split('\n'):
+            canvas.create_text(x, y, text=line, anchor='nw', font=('Arial', 12))
+            y += 20  # Move to the next line position 

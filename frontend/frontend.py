@@ -67,7 +67,6 @@ def cfg_tabs(master):
     tabs.add(tab3, text="Memory")
     tabs.add(tab4, text="Cache Hierarchy")
 
-
 def cfg_window(tab1):
     size = len(options)
 
@@ -95,7 +94,7 @@ def cfg_window(tab1):
     simulate_button = tk.Button(tab1, text="Configure", command=lambda: verify(bottom_bar, render.sections, resource.resource_selected), width=30)
     simulate_button.grid(row=size*3 + 3, column=1, padx=5, pady=5, sticky=tk.E)
 
-    gen_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, render.sections, resource.resource_selected), width=30)
+    gen_button = tk.Button(tab1, text="Simulate", command=lambda: calls.run_simulation(bottom_bar, canvas), width=30)
     gen_button.grid(row=size * 3 + 3, column=2, padx=2, pady=2, sticky=tk.E)
 
     # DEFAULTS
