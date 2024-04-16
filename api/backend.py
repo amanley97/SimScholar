@@ -237,6 +237,7 @@ def run_gem5_simulator():
 
 
 def generate_config(board_info):
+    brd = str(board_info['Board Configuration']['type'])
     clk = str(board_info['Board Configuration']['clk']) + "GHz"
     cpu = eval("CPUTypes." + str(board_info['Processor Configuration']['type']).upper())
     isa = eval(board_info['Processor Configuration']['isa'])
@@ -268,7 +269,9 @@ def generate_config(board_info):
     rtype = board_info['resource'][0]
     resource = str(board_info['resource'][1])
     print("\n======CONFIGURATION======")
-    print(f"Clock Frequency: {clk}, \nCPU Type: {cpu}, \nISA: {isa}, \nNumber of Cores: {ncores}, \nMemory Type: {mem}, \nMemory Size: {msize}, \nCache Type: {cache}, \nUsing Resource: {resource}\n")
+    print(f"Board: {brd}, \nClock Frequency: {clk}, \nCPU Type: {cpu}, \nISA: {isa}, \nNumber of Cores: {ncores}, \nMemory Type: {mem}, \nMemory Size: {msize}, \nCache Type: {cache}, \nUsing Resource: {resource}\n")
+
+    #TODO: Add support for other board types
 
     configuration = SimpleBoard(
         clk_freq=clk,
