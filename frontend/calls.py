@@ -100,7 +100,7 @@ def http_request(api_endpoint, request_type, data=None):
         return response
 
 def run_simulation(output_location, board_info, resource):
-    print("BBBB \n", board_info)
+    # print("BBBB \n", board_info)
     board_info['resource'] = resource
     user_id = board_info.get('user_id')
     selected_opts = http_request("user-data", "PUT", board_info)

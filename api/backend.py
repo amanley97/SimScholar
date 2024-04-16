@@ -201,8 +201,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
             self.send_response(500, {"error": "Internal Server Error"})
 
         self.end_headers()
-        response = bytes(json.dumps({'status': 'success'}), 'utf-8')
-        self.wfile.write(response)
+        self.wfile.write(b"Successfully configured gem5. Ready to Simulate!")
 
 #=============================================================#
 
