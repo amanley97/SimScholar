@@ -53,7 +53,7 @@ def populate_frame(frame, data, label=""):
         elif isinstance(value, int):
             intvar = tk.IntVar(row_frame)
             intvar.set(value)
-            entry = tk.Entry(row_frame, textvariable=intvar)
+            entry = ttk.Entry(row_frame, textvariable=intvar)
             entry.pack(side='right', fill='x', expand=True)
             saved_opts[key] = intvar.get()
             entry.bind("<Return>", lambda event=None, t=label, d=key, v=intvar: update_selected(t, d, v))
@@ -67,19 +67,39 @@ def cache_select(type):
     l1d_size = cache_entries[0]
     l1i_size = cache_entries[1]
     l2_size = cache_entries[2]
+    l1d_assoc = cache_entries[3]
+    l1i_assoc = cache_entries[4]
+    l2_assoc = cache_entries[5]
+
     if cache_type == 'NoCache':
         printdebug("[render] selected no cache")
         l1d_size.config(state='disabled') # disable L1I size
         l1i_size.config(state='disabled') # disable L1D size
         l2_size.config(state='disabled') # disable L2 size
+        l1d_assoc.config(state='disabled')
+        l1i_assoc.config(state='disabled')
+        l2_assoc.config(state='disabled')
     elif cache_type == 'PrivateL1CacheHierarchy':
         printdebug("[render] selected L1 only")
         l1d_size.config(state='normal') # enable L1I size
         l1i_size.config(state='normal') # enable L1D size
         l2_size.config(state='disabled') # disable L2 size
-    elif cache_type == 'PrivateL1PrivateL2CacheHierarchy' or cache_type == 'PrivateL1SharedL2CacheHierarchy':
+        l1d_assoc.config(state='disabled')
+        l1i_assoc.config(state='disabled')
+        l2_assoc.config(state='disabled')
+    elif cache_type == 'PrivateL1PrivateL2CacheHierarchy':
         printdebug("[render] selected L1 and L2")
         l1d_size.config(state='normal') # enable L1I size
         l1i_size.config(state='normal') # enable L1D size
         l2_size.config(state='normal') # enable L2 size
-    
+        l1d_assoc.config(state='disabled')
+        l1i_assoc.config(state='disabled')
+        l2_assoc.config(state='disabled')
+    elif cache_type == 'PrivateL1SharedL2CacheHierarchy':
+        printdebug("[render] selected L1 and shared L2")
+        l1d_size.config(state='normal') # enable L1I size
+        l1i_size.config(state='normal') # enable L1D size
+        l2_size.config(state='normal') # enable L2 size
+        l1d_assoc.config(state='normal')
+        l1i_assoc.config(state='normal')
+        l2_assoc.config(state='normal')
