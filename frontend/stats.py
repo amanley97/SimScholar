@@ -13,14 +13,29 @@
 # ----------------------------------------------------------------------------
 
 import tkinter as tk
+from tkinter import messagebox
+from printdebug import printdebug
+
+mode = 'default'
 names = []
 values = []
 comments = []
+stats_found = []
+default_stats = [
+    "numcycles", 
+    "simseconds", 
+    "simticks", 
+    "finaltick", 
+    "siminsts", 
+    "simops", 
+    "overallhits::total", 
+    "overallmisses::total"
+]
 line_range = [0, 10]
 
 def parse_stats(text):
     global line_range, names, values, comments
-    print("[stats] Refreshing Stats")
+    printdebug("[stats] Refreshing Stats")
     file_path = './m5out/stats.txt'
     names.clear()
     values.clear()
@@ -55,89 +70,80 @@ def parse_stats(text):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-    line_range = [0, 10]
-    show_stats(text, True)
+    if mode == 'default':
+        stats_found.clear()
+        for term in default_stats:
+            search_stats(names, term)
+        printdebug(f"[stats] {len(stats_found)} stats found")
+        if len(stats_found) > 0:
+            show_stats(text)
+        else:
+            messagebox.showerror("Error", "No Stats file found!")
+    else:
+        line_range = [0, 10]
+        show_stats(text)
 
-def show_stats(text, forward):
+def show_stats(text):
+
+    def display_stat(canvas, array, index, width, size):
+        # Position to start drawing text
+        x = 10
+        y = 10
+        for line in index:
+            canvas.create_text(x, y, text=array[line], anchor='nw', font=('Courier', size), width=width)
+            y += 30  # Move to the next line position 
+
+    printdebug("[stats] displaying stats")
     global line_range
     name_text = text[0]
     value_text = text[1]
     comment_text = text[2]
 
     # Clear text boxes
-    name_text.delete("1.0", "end")
-    value_text.delete("1.0", "end")
-    comment_text.delete("1.0", "end")
+    name_text.delete("all")
+    value_text.delete("all")
+    comment_text.delete("all")
 
-    if not forward:
-        if line_range[0] > 0:
-            line_range[0] -= 10
-            line_range[1] -= 10
+    if mode == 'default':
+        display_stat(name_text, names, stats_found, 340, 11)
+        display_stat(value_text, values, stats_found, 90, 12)
+        display_stat(comment_text, comments, stats_found, 390, 9)
 
-        for line in range(line_range[0], line_range[1]):
-            name_text.insert("1.0", f"{names[line]}\n")
-            value_text.insert("1.0", f"{values[line]}\n")
-            comment_text.insert("1.0", f"{comments[line]}\n")
-
-    else:
-        for line in range(line_range[0], line_range[1]):
-            name_text.insert("1.0", f"{names[line]}\n")
-            value_text.insert("1.0", f"{values[line]}\n")
-            comment_text.insert("1.0", f"{comments[line]}\n")
-
-        line_range[0] += 10
-        line_range[1] += 10
-
-    print(line_range) 
+def search_stats(list, term):
+    global stats_found
+    search_substring_lower = term.lower()
+    indices = [index for index, item in enumerate(list) if search_substring_lower in item.lower()]
+    for i in range(len(indices)):
+        stats_found.append(indices[i])
+    return stats_found
 
 def stats_window(stats):
     stats_height = 20
     header_label = tk.Label(stats, text="Simulation Stats", font=('TkDefaultFont', 16, 'bold'), bg="gray", fg="black")
-    header_label.grid(row=0, column=0, columnspan=3, pady=10, padx=20)
+    header_label.grid(row=0, column=0, columnspan=3, pady=20, padx=20, sticky="we")
 
-    tk.Label(stats, text="Name", font=('TkDefaultFont', 10, 'bold'), bg="gray", fg="black").grid(row=1, column=0, pady=20, padx=20)
-    stats_name = tk.Text(stats, 
-                   width=30, 
-                   height=stats_height, 
-                   font="Courier", 
-                   cursor="arrow", 
-                   bg="lightgray", 
-                   fg="black", 
-                   wrap="word")
-    stats_name.grid(row=2, column=0, sticky="we", padx=20, pady=10)
+    tk.Label(stats, text="Name", font=('TkDefaultFont', 10, 'bold'), bg="gray", fg="black").grid(row=1, column=0, pady=5, padx=20)
+    stats_name = tk.Canvas(stats, width=350, height=stats_height*20, bg="lightgray")
+    stats_name.grid(row=2, column=0, sticky="we", padx=10, pady=5)
 
-    tk.Label(stats, text="Value", font=('TkDefaultFont', 10, 'bold'), bg="gray", fg="black").grid(row=1, column=1, pady=20, padx=20)
-    stats_val = tk.Text(stats, 
-                   width=10, 
-                   height=stats_height, 
-                   font="Courier", 
-                   cursor="arrow", 
-                   bg="lightgray", 
-                   fg="black", 
-                   wrap="word")
-    stats_val.grid(row=2, column=1, sticky="we", padx=20, pady=10)
+    tk.Label(stats, text="Value", font=('TkDefaultFont', 10, 'bold'), bg="gray", fg="black").grid(row=1, column=1, pady=5, padx=20)
+    stats_val = tk.Canvas(stats, width=100, height=stats_height*20, bg="lightgray")
+    stats_val.grid(row=2, column=1, sticky="we", padx=10, pady=5)
 
-    tk.Label(stats, text="Comment", font=('TkDefaultFont', 10, 'bold'), bg="gray", fg="black").grid(row=1, column=2, pady=20, padx=20)
-    stats_comment = tk.Text(stats, 
-                   width=40, 
-                   height=stats_height, 
-                   font="Courier", 
-                   cursor="arrow", 
-                   bg="lightgray", 
-                   fg="black", 
-                   wrap="word")
-    stats_comment.grid(row=2, column=2, sticky="we", padx=20, pady=10)
-
+    tk.Label(stats, text="Comment", font=('TkDefaultFont', 10, 'bold'), bg="gray", fg="black").grid(row=1, column=2, pady=5, padx=20)
+    stats_comment = tk.Canvas(stats, width=400, height=stats_height*20, bg="lightgray")
+    stats_comment.grid(row=2, column=2, sticky="we", padx=10, pady=5)
     frame = [stats_name, stats_val, stats_comment]
 
     refresh_button = tk.Button(stats, text="Refresh", command=lambda t=frame: parse_stats(t), width=10)
-    refresh_button.grid(row=0, column=2, padx=10, pady=5, sticky="e")
+    refresh_button.grid(row=3, column=2, padx=10, pady=5, sticky="e")
 
-    prev_button = tk.Button(stats, text="Previous", command=lambda t=frame: show_stats(t, False), width=20)
-    prev_button.grid(row=3, column=0, padx=10, pady=5, sticky="w")
+    if mode == 'all':
+        prev_button = tk.Button(stats, text="Previous", command=lambda t=frame: show_stats(t, False), width=20)
+        prev_button.grid(row=3, column=0, padx=10, pady=5, sticky="w")
 
-    next_button = tk.Button(stats, text="Next", command=lambda t=frame: show_stats(t, True), width=20)
-    next_button.grid(row=3, column=2, padx=10, pady=5, sticky="e")
+        next_button = tk.Button(stats, text="Next", command=lambda t=frame: show_stats(t, True), width=20)
+        next_button.grid(row=3, column=2, padx=10, pady=5, sticky="e")
 
-    stats.grid_rowconfigure(1, weight=1)
-    stats.grid_columnconfigure(0, weight=1)
+    # stats.grid_rowconfigure(1, weight=1)
+    # stats.grid_columnconfigure(0, weight=1)
