@@ -210,10 +210,10 @@ def run_server(port=5000):
     httpd.serve_forever()
 
 def run_gem5_simulator():
-    print("PID: ", os.getpid())
-    with open('../output.txt', "w") as f:
+    with open('m5out/output.txt', "w") as f:
         sys.stdout = f
         sys.stderr = f
+        print("Simulation PID: ", os.getpid())
         user_id = 'default'
         data = SimpleHandler.user_data_storage.get(user_id)
         global boardd
@@ -233,7 +233,7 @@ def run_gem5_simulator():
         sys.stderr.flush()
     dump()
     reset()
-    # m5.statsreset()
+    m5.statsreset()
 
 def generate_config(board_info):
     brd = str(board_info['Board Configuration']['type'])

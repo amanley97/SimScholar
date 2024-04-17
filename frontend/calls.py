@@ -106,12 +106,12 @@ def display_sim_out(canvas):
     canvas.delete("all")
     
     # Read and display the new file content
-    with open('../output.txt', 'r') as file:
+    with open('m5out/output.txt', 'r') as file:
         text = file.read()
 
         # Position to start drawing text
         x = 10
         y = 10
         for line in text.split('\n'):
-            canvas.create_text(x, y, text=line, anchor='nw', font=('Arial', 12))
+            canvas.create_text(x, y, text=line, anchor='nw', font=('Courier', 12))
             y += 20  # Move to the next line position 
