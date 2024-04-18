@@ -210,6 +210,10 @@ def run_server(port=5000):
     httpd.serve_forever()
 
 def run_gem5_simulator():
+    with open("./m5out/stats.txt", 'r+') as file:
+        file.seek(0)
+        file.truncate()
+
     with open('m5out/output.txt', "w") as f:
         sys.stdout = f
         sys.stderr = f
@@ -231,6 +235,7 @@ def run_gem5_simulator():
         )
         sys.stdout.flush()
         sys.stderr.flush()
+
     dump()
     reset()
     m5.statsreset()
@@ -253,10 +258,13 @@ def generate_config(board_info):
             l1i_size = str(board_info['Cache Configuration']['l1i_size']) + "KiB"
         )
     elif cache_type == "PrivateL1SharedL2CacheHierarchy":
-        cache = PrivateL1PrivateL2CacheHierarchy(
+        cache = PrivateL1SharedL2CacheHierarchy(
             l1d_size=str(board_info['Cache Configuration']['l1d_size']) + "KiB",
             l1i_size=str(board_info['Cache Configuration']['l1i_size']) + "KiB",
-            l2_size=str(board_info['Cache Configuration']['l2_size']) + "KiB"
+            l2_size=str(board_info['Cache Configuration']['l2_size']) + "KiB",
+            l1d_assoc = board_info['Cache Configuration']['l1d_assoc'],
+            l1i_assoc = board_info['Cache Configuration']['l1i_assoc'],
+            l2_assoc = board_info['Cache Configuration']['l2_assoc']
         )
     elif cache_type == "PrivateL1PrivateL2CacheHierarchy":
         cache = PrivateL1PrivateL2CacheHierarchy(
