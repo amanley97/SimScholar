@@ -250,13 +250,16 @@ def generate_config(board_info):
     msize = str(board_info['Memory Configuration']['size']) + "MB"
     cache_type = board_info['Cache Configuration']['type']
     cache = None
+    cache_for_display = ""
     if cache_type == "NoCache":
         cache = eval(board_info['Cache Configuration']['type'] + "()")
+        cache_for_display = board_info['Cache Configuration']['type']
     elif cache_type == "PrivateL1CacheHierarchy":
         cache = PrivateL1CacheHierarchy(
             l1d_size = str(board_info['Cache Configuration']['l1d_size']) + "KiB",
             l1i_size = str(board_info['Cache Configuration']['l1i_size']) + "KiB"
         )
+        cache_for_display = str(board_info['Cache Configuration']['type']) + "\nL1d: " +str(board_info['Cache Configuration']['l1d_size']) + "KiB" + "\nL1i: " +str(board_info['Cache Configuration']['l1i_size']).replace(",","") + "KiB"
     elif cache_type == "PrivateL1SharedL2CacheHierarchy":
         cache = PrivateL1SharedL2CacheHierarchy(
             l1d_size=str(board_info['Cache Configuration']['l1d_size']) + "KiB",
@@ -266,17 +269,20 @@ def generate_config(board_info):
             l1i_assoc = board_info['Cache Configuration']['l1i_assoc'],
             l2_assoc = board_info['Cache Configuration']['l2_assoc']
         )
+        cache_for_display = str(board_info['Cache Configuration']['type']) + "\nL1d: " +str(board_info['Cache Configuration']['l1d_size']) + "KiB" + "\nL1i: " +str(board_info['Cache Configuration']['l1i_size']) + "KiB" + "\nL2: " +str(board_info['Cache Configuration']['l2_size']) + "KiB" + "\nL1d_assoc: " +str(board_info['Cache Configuration']['l1d_assoc']) + "\nL1i_assoc: " +str(board_info['Cache Configuration']['l1i_assoc']) + "\nL2_assoc: " +str(board_info['Cache Configuration']['l2_assoc']).replace(",","")
     elif cache_type == "PrivateL1PrivateL2CacheHierarchy":
         cache = PrivateL1PrivateL2CacheHierarchy(
             l1d_size = str(board_info['Cache Configuration']['l1d_size']) + "KiB",
             l1i_size = str(board_info['Cache Configuration']['l1i_size']) + "KiB",
             l2_size = str(board_info['Cache Configuration']['l2_size']) + "KiB"
         )
+        cache_for_display = str(board_info['Cache Configuration']['type']) + "\nL1d: " +str(board_info['Cache Configuration']['l1d_size']) + "KiB" + "\nL1i: " +str(board_info['Cache Configuration']['l1i_size']) + "KiB" +  "\nL2: " +str(board_info['Cache Configuration']['l2_size']).replace(",","") + "KiB"
 
     rtype = board_info['resource'][0]
     resource = str(board_info['resource'][1])
     print("\n======CONFIGURATION======")
-    print(f"Board: {brd}, \nClock Frequency: {clk}, \nCPU Type: {cpu}, \nISA: {isa}, \nNumber of Cores: {ncores}, \nMemory Type: {mem}, \nMemory Size: {msize}, \nCache Type: {cache}, \nUsing Resource: {resource}\n")
+
+    print(f"Board: {brd}, \nClock Frequency: {clk}, \nCPU Type: {cpu}, \nISA: {isa}, \nNumber of Cores: {ncores}, \nMemory Type: {mem}, \nMemory Size: {msize}, \nCache Type: {cache_for_display}, \nUsing Resource: {resource}\n")
 
     #TODO: Add support for other board types
 
