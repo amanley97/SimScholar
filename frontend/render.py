@@ -56,7 +56,7 @@ def populate_frame(frame, data, label=""):
             entry = ttk.Entry(row_frame, textvariable=intvar)
             entry.pack(side='right', fill='x', expand=True)
             saved_opts[key] = intvar.get()
-            entry.bind("<Return>", lambda event=None, t=label, d=key, v=intvar: update_selected(t, d, v))
+            entry.bind("<KeyRelease>", lambda event=None, t=label, d=key, v=intvar: update_selected(t, d, v))
             if label == "Cache Configuration":
                 entry.config(state='disabled')
                 cache_entries.append(entry)
