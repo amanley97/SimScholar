@@ -12,8 +12,9 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
-import subprocess, time
+import subprocess, time, os
 from frontend.printdebug import printdebug
+gem5 = os.getenv('GEM5_PATH')
 
 path = {
     "backend" : "./api/backend.py",
@@ -21,7 +22,7 @@ path = {
 }
 
 def run_backend():
-    cmd = ["gem5.opt", path["backend"]]
+    cmd = [str(gem5), path["backend"]]
     printdebug("[Starting Backend]", color='green')
     p = subprocess.Popen(cmd)
     return p
@@ -33,7 +34,7 @@ def run_frontend():
     p.wait()
 
 def check_port(port):
-    cmd = f"sudo netstat -anp | grep :{port} | grep LISTEN"
+    cmd = f"netstat -anp | grep :{port} | grep LISTEN"
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     output, errors = p.communicate()
 
