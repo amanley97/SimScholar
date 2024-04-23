@@ -12,9 +12,12 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
+import os
 import tkinter as tk
 from tkinter import messagebox
 from printdebug import printdebug
+snap_dir = os.getenv('SNAP_USER_COMMON')
+stats_dir = os.path.join(snap_dir, 'm5out', 'stats.txt')
 
 mode = 'default'
 names = []
@@ -36,7 +39,7 @@ line_range = [0, 10]
 def parse_stats(text):
     global line_range, names, values, comments
     printdebug("[stats] Refreshing Stats")
-    file_path = './m5out/stats.txt'
+    file_path = stats_dir
     names.clear()
     values.clear()
     comments.clear()

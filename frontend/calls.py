@@ -12,8 +12,10 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
-import requests, json
+import requests, json, os
 from printdebug import printdebug
+snap_dir = os.getenv('SNAP_USER_COMMON')
+simout_path = os.path.join(snap_dir, 'm5out', 'output.txt')
 
 opt = {
     'boards' : {
@@ -106,7 +108,7 @@ def display_sim_out(canvas):
     canvas.delete("all")
     
     # Read and display the new file content
-    with open('m5out/output.txt', 'r') as file:
+    with open(simout_path, 'r') as file:
         text = file.read()
 
         # Position to start drawing text

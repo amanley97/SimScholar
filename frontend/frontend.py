@@ -12,6 +12,7 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
+import os
 import tkinter as tk
 from tkinter import ttk, PhotoImage, messagebox
 import calls, render, ide, stats, resource
@@ -35,8 +36,6 @@ def root_window():
     # Create the main window
     root = tk.Tk()
     root.title("eager    ->    the all-in-one gem5 environment")
-    img = PhotoImage(file='frontend/assets/icon.png')
-    root.iconphoto(True, img)
 
     notebook = ttk.Notebook(root)
     notebook.grid(row=1, column=0, columnspan=2, sticky="nsew")

@@ -14,8 +14,10 @@
 
 import tkinter as tk
 from tkinter import filedialog, Menu, Menubutton, messagebox
-import subprocess
+import subprocess, os
 from printdebug import printdebug
+snap_dir = os.getenv('SNAP_USER_COMMON')
+workload_dir = os.path.join(snap_dir, 'workloads')
 
 def save_as_file(text, file_info):
     file_info['file_path'] = None
@@ -30,7 +32,7 @@ def save_file(text, file_info):
             text_content = text.get("1.0", "end-1c")
             file.write(text_content)
     else:
-        file_path = filedialog.asksaveasfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./workloads")
+        file_path = filedialog.asksaveasfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir=workload_dir)
         printdebug(f"[ide] saving file: {file_path}")
         if file_path:
             with open(file_path, "w") as file:
@@ -39,7 +41,7 @@ def save_file(text, file_info):
             file_info['file_path'] = file_path  # Store the new file path        
 
 def open_file(text, file_info, func):
-    file_path = filedialog.askopenfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir="./workloads")
+    file_path = filedialog.askopenfilename(defaultextension=".c", filetypes=[("C Program Files", "*.c"), ("All files", "*.*")], initialdir=workload_dir)
     printdebug(f"[ide] opening file: {file_path}")
     if file_path:
         with open(file_path, "r") as file:
@@ -51,16 +53,16 @@ def open_file(text, file_info, func):
 
 def compile(file_info):
     printdebug("[ide] compiling user program")
-
+    gcc = os.getenv('GCC_PATH')
     if (file_info["file_path"] == None):
         messagebox.showerror("Error", "File must be saved before compiling!")
     elif (file_info["compile_path"] == None):
         messagebox.showerror("Error", "Please specify executable path!")
-        file_info["compile_path"] = filedialog.asksaveasfilename(defaultextension="", filetypes=[("C Binary", "*.out")], initialdir="./workloads", title="Save Binary As")
+        file_info["compile_path"] = filedialog.asksaveasfilename(defaultextension="", filetypes=[("C Binary", "*.out")], initialdir=workload_dir, title="Save Binary As")
     
         srcname = file_info["file_path"]
         execpath = file_info["compile_path"]
-        cmd = ["gcc", "-O2", srcname, "-o", execpath]
+        cmd = [str(gcc), "-O2", srcname, "-o", execpath]
         p = subprocess.Popen(cmd)
         p.wait()
         messagebox.showinfo("Information", "Workload Compiled Successfully!")

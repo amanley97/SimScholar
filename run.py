@@ -15,14 +15,19 @@
 import subprocess, time, os
 from frontend.printdebug import printdebug
 gem5 = os.getenv('GEM5_PATH')
+snap_dir = os.getenv('SNAP')
+snap_common = os.getenv('SNAP_USER_COMMON')
+out_dir = str('--outdir='+snap_common)
+frontend_path = os.path.join(snap_dir, 'frontend', 'frontend.py')
+backend_path = './api/backend.py'
 
 path = {
-    "backend" : "./api/backend.py",
-    "frontend" : "./frontend/frontend.py"
+    "backend" : backend_path,
+    "frontend" : frontend_path
 }
 
 def run_backend():
-    cmd = [str(gem5), path["backend"]]
+    cmd = [str(gem5), out_dir, path["backend"]]
     printdebug("[Starting Backend]", color='green')
     p = subprocess.Popen(cmd)
     return p

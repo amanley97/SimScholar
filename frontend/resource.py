@@ -12,14 +12,17 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
+import os
 import tkinter as tk
 from tkinter import ttk, filedialog
 from printdebug import printdebug
+snap_dir = os.getenv('SNAP_USER_COMMON')
+workload_dir = os.path.join(snap_dir, 'workloads')
 resource_selected = []
 
 def select_custom_binary():
     global resource_selected
-    binary = filedialog.askopenfilename(defaultextension="", filetypes=[("Binaries", "*.out")], initialdir="./workloads", title="Select Custom Binary")
+    binary = filedialog.askopenfilename(defaultextension="", filetypes=[("Binaries", "*.out")], initialdir=workload_dir, title="Select Custom Binary")
     resource_selected = ['custom', binary]
     printdebug(f'[resource] selected: {resource_selected[1]}')
 

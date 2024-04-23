@@ -39,6 +39,8 @@ from gem5.components.processors.simple_processor import SimpleProcessor
 #
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import inspect, json
+snap_dir = os.getenv('SNAP_USER_COMMON')
+stats_dir = os.path.join(snap_dir, 'm5out', 'stats.txt')
 
 MemTypes = {name:obj for name,obj in inspect.getmembers(dram_interfaces, inspect.ismodule)}
 #MemTypes = {name:obj for name,obj in inspect.getmembers(dram_interfaces, inspect.ismodule)}
@@ -210,11 +212,11 @@ def run_server(port=5000):
     httpd.serve_forever()
 
 def run_gem5_simulator():
-    with open("./m5out/stats.txt", 'r+') as file:
+    with open(stats_dir, 'r+') as file:
         file.seek(0)
         file.truncate()
 
-    with open('m5out/output.txt', "w") as f:
+    with open(stats_dir, "w") as f:
         sys.stdout = f
         sys.stderr = f
         print("Simulation PID: ", os.getpid())
