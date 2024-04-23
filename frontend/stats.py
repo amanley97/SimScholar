@@ -13,8 +13,12 @@
 # ----------------------------------------------------------------------------
 
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, Toplevel, Canvas
 from printdebug import printdebug
+import os
+from PIL import Image, ImageTk
+from svglib.svglib import svg2rlg
+from reportlab.graphics import renderPM
 
 mode = 'default'
 names = []
@@ -117,6 +121,27 @@ def search_stats(list, term):
         stats_found.append(indices[i])
     return stats_found
 
+def config_diagram_window(root, svg_path='./m5out/config.dot.svg', scale=0.6):
+    if not os.path.exists(svg_path):
+        printdebug(f"[stats] file {svg_path} not found.")
+        messagebox.showerror("Error", "No Configuration Diagram found!")
+        return
+
+    drawing = svg2rlg(svg_path)
+    image = renderPM.drawToPIL(drawing)
+    new_width = int(image.width * scale)
+    new_height = int(image.height * scale)
+    image = image.resize((new_width, new_height), Image.ANTIALIAS)
+
+    top = Toplevel(root)
+    top.title("Configuration Diagram")
+
+    canvas = Canvas(top, width=image.width, height=image.height)
+    canvas.pack()
+    photo = ImageTk.PhotoImage(image)
+    canvas.create_image(0, 0, image=photo, anchor="nw")
+    canvas.image = photo
+
 def stats_window(stats):
     stats_height = 20
     header_label = tk.Label(stats, text="Simulation Stats", font=('TkDefaultFont', 16, 'bold'), bg="gray", fg="black")
@@ -137,6 +162,9 @@ def stats_window(stats):
 
     refresh_button = tk.Button(stats, text="Refresh", command=lambda t=frame: parse_stats(t), width=10)
     refresh_button.grid(row=3, column=2, padx=10, pady=5, sticky="e")
+
+    diagram_button = tk.Button(stats, text="View Configuration Diagram", command=lambda t=stats: config_diagram_window(t), width=25)
+    diagram_button.grid(row=3, column=0, padx=10, pady=5, sticky="w")
 
     if mode == 'all':
         prev_button = tk.Button(stats, text="Previous", command=lambda t=frame: show_stats(t, False), width=20)
