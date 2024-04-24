@@ -17,6 +17,8 @@ import tkinter as tk
 from tkinter import ttk, PhotoImage, messagebox
 import calls, render, ide, stats, resource
 from printdebug import printdebug
+snap_dir = os.getenv('SNAP')
+icon_path = os.path.join(snap_dir, 'frontend', 'assets', 'icon.png')
 
 opt = calls.get_gem5_data()[0]
 options = opt
@@ -36,7 +38,7 @@ def root_window():
     # Create the main window
     root = tk.Tk()
     root.title("eager    ->    the all-in-one gem5 environment")
-
+    root.iconphoto(True, PhotoImage(file=icon_path))
     notebook = ttk.Notebook(root)
     notebook.grid(row=1, column=0, columnspan=2, sticky="nsew")
 
@@ -82,7 +84,7 @@ def cfg_window(tab1):
     resource.rsrc_menu(tab1)
 
     # CANVAS
-    canvas = tk.Canvas(tab1, width=600, height=400, bg="lightgray")
+    canvas = tk.Canvas(tab1, width=600, height=650, bg="lightgray")
     canvas.grid(row=1, column=1, padx=10, pady=10, rowspan=size*2 + 1, columnspan=2, sticky=tk.W)
 
     # HINT BAR

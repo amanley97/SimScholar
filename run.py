@@ -12,14 +12,14 @@
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
 
-import subprocess, time, os
+import subprocess, time, os, shutil
 from frontend.printdebug import printdebug
 gem5 = os.getenv('GEM5_PATH')
 snap_dir = os.getenv('SNAP')
 snap_common = os.getenv('SNAP_USER_COMMON')
-out_dir = str('--outdir='+snap_common)
+out_dir = str('--outdir='+snap_common+'/m5out')
 frontend_path = os.path.join(snap_dir, 'frontend', 'frontend.py')
-backend_path = './api/backend.py'
+backend_path = os.path.join(snap_dir, 'api', 'backend.py')
 
 path = {
     "backend" : backend_path,
@@ -50,9 +50,34 @@ def check_port(port):
         printdebug(f"[run] Port {port} is available.\n", color='green')
     return p.returncode
 
+def check_filetree():
+    gsrc = os.path.join(os.getenv('SNAP'), 'exec', 'gem5.opt')
+    gdst = os.path.join(os.getenv('SNAP_USER_COMMON'), 'gem5.opt')
+    wsrc = os.path.join(os.getenv('SNAP'), 'workloads')
+    wdst = os.path.join(os.getenv('SNAP_USER_COMMON'), 'workloads')
+
+    if not os.path.exists(gdst):
+        printdebug(f"[Error] gem5 binary missing, moving to correct location.", color='red')
+        try:
+            shutil.copy2(gsrc, gdst)
+            printdebug(f'[run] Copied gem5 binary to {gdst}', color='green')
+        except:
+            printdebug(f'[Error] Failed to copy gem5 binary to {gdst}\n', color='red')
+            return False
+        if not os.path.exists(wdst):
+            printdebug(f"[Error] Workloads directory missing, moving to correct location.", color='red')
+            try:
+                shutil.copytree(wsrc, wdst)
+                printdebug(f'[run] Copied workloads to {wdst}', color='green')
+            except:
+                printdebug(f'[Error] Failed to copy workloads to {wdst}\n', color='red')
+                return False
+    printdebug(f'[run] gem5 binary and Workloads directory found!\n', color='green')
+    return True
+
 if __name__ == '__main__':
     port = 5000
-    if check_port(port):
+    if check_port(port) and check_filetree():
         pb = run_backend()
         time.sleep(5)
         run_frontend()

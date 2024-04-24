@@ -29,12 +29,15 @@ def render_section(master, opts, title):
     return section_frame
 
 def update_selected(title, key, newval):
-    oldval = sections[title][key]
-    if newval.get() != oldval:
-        sections[title][key] = newval.get()
-    if title == "Cache Configuration":
-        cache_select(key)
-
+    try:
+        oldval = sections[title][key]
+        if newval.get() != oldval:
+            sections[title][key] = newval.get()
+        if title == "Cache Configuration":
+            cache_select(key)
+    except:
+        printdebug(f"[render] invalid entry for {key}")
+        
 def populate_frame(frame, data, label=""):
     saved_opts = {}
     if label:  # If a label is provided, add a header
@@ -51,7 +54,10 @@ def populate_frame(frame, data, label=""):
             dropdown.pack(side='right', fill='x', expand=True)
             saved_opts[key] = var.get()
         elif isinstance(value, int):
-            intvar = tk.IntVar(row_frame)
+            if key == 'clk':
+                intvar = tk.DoubleVar(row_frame)
+            else:    
+                intvar = tk.IntVar(row_frame)
             intvar.set(value)
             entry = ttk.Entry(row_frame, textvariable=intvar)
             entry.pack(side='right', fill='x', expand=True)

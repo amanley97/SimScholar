@@ -28,7 +28,6 @@ default_stats = [
     "numcycles", 
     "simseconds", 
     "simticks", 
-    "finaltick", 
     "siminsts", 
     "simops", 
     "overallhits::total", 

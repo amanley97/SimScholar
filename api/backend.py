@@ -41,6 +41,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import inspect, json
 snap_dir = os.getenv('SNAP_USER_COMMON')
 stats_dir = os.path.join(snap_dir, 'm5out', 'stats.txt')
+out_dir = os.path.join(snap_dir, 'm5out', 'output.txt')
+
 
 MemTypes = {name:obj for name,obj in inspect.getmembers(dram_interfaces, inspect.ismodule)}
 #MemTypes = {name:obj for name,obj in inspect.getmembers(dram_interfaces, inspect.ismodule)}
@@ -216,7 +218,7 @@ def run_gem5_simulator():
         file.seek(0)
         file.truncate()
 
-    with open(stats_dir, "w") as f:
+    with open(out_dir, "w") as f:
         sys.stdout = f
         sys.stderr = f
         print("Simulation PID: ", os.getpid())
