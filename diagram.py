@@ -16,6 +16,7 @@ from PIL import Image, ImageTk
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 
+
 def open_svg_popup(svg_path, root, scale=0.6):
     messagebox.showerror("Error", "No Stats file found!")
     # Convert SVG to an image
@@ -42,6 +43,7 @@ def open_svg_popup(svg_path, root, scale=0.6):
 
     # Keep the reference of the photo (important to prevent garbage-collection)
     canvas.image = photo
+
 
 # Example usage:
 # root = tk.Tk()  # This would typically be created in your main application code
