@@ -15,7 +15,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import subprocess
-from printdebug import printdebug
+from utils.printdebug import printdebug
 
 
 class SimScholarIDE:
@@ -89,6 +89,7 @@ class SimScholarIDE:
 class SimScholarResource:
     def __init__(self) -> None:
         self.resource_selected = []
+        self.gem5_resources = ["x86-hello64-static", "arm-hello64-static"]
 
     def select_custom_binary(self):
         binary = filedialog.askopenfilename(
@@ -103,3 +104,13 @@ class SimScholarResource:
     def select_gem5_binary(self, binary):
         self.resource_selected = ["default", binary]
         printdebug(f"[resource] selected: {self.resource_selected[1]}")
+
+    def show_resource(self, menu, button, resource):
+        r = resource[0].get()
+        if r == "default":
+            button.pack_forget()
+            self.resource_selected = ["default", self.gem5_resources[0]]
+            menu.pack(pady=(10, 5), padx=10, anchor="se")
+        elif r == "custom":
+            menu.pack_forget()
+            button.pack(pady=(10, 5), padx=10, anchor="se")

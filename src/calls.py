@@ -13,16 +13,15 @@
 # ----------------------------------------------------------------------------
 
 import requests, json
-from stats import SimScholarStats as stats
-from printdebug import printdebug
+from utils.printdebug import printdebug
 
 
 class SimScholarCalls:
-    def __init__(self, port, path) -> None:
+    def __init__(self, stats_handler, port, path) -> None:
         self.port = port
         self.path = path
         self.data = None
-        self.stats = None
+        self.stats = stats_handler
         self.opt = {
             "boards": {"type": [], "clk": 3},
             "processor": {
@@ -127,10 +126,8 @@ class SimScholarCalls:
         sim_id, cfg_id = parse_simulation_string(id)
 
         # UPDATE STATS
-        if self.stats != None:
-            del self.stats
-        self.stats = stats(self.path, sim_id, cfg_id)
-        self.stats.parse_stats(stats_out)
+        self.stats.update_id(sim_id, cfg_id)
+        # self.stats.parse_stats(stats_out)
 
         # UPDATE SIM OUT
         out_path = self.path + f"/m5out/config_{cfg_id}_sim_{sim_id}/output.txt"

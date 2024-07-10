@@ -14,30 +14,41 @@
 
 import tkinter as tk
 from tkinter import ttk, PhotoImage, messagebox
-import render
-from calls import SimScholarCalls as call
-from ide import SimScholarIDE as ide
-from ide import SimScholarResource as resource
-from style import SimScholarStyling as style
-from printdebug import printdebug
+from .render import SimScholarRender
+from .calls import SimScholarCalls
+from .ide import SimScholarIDE
+from .ide import SimScholarResource
+from .stats import SimScholarStats
+from utils.printdebug import printdebug
 
 
-class frontend:
-    def __init__(self) -> None:
-        self.mode = "default"
-        self.port = 8080
-        self.backend_path = "/home/a599m019/Projects/Current/contributing/gem5"
-        self.style = style()
-        self.caller = call(self.port, self.backend_path)
-        self.ide = ide()
-        self.resource = resource()
-        self.stat_obj = None
-        self.boards = self.caller.opt["boards"]
-        self.processors = self.caller.opt["processor"]
-        self.memories = self.caller.opt["memory"]
-        self.caches = self.caller.opt["cache"]
-
-        self.caller.get_gem5_data()
+class SimScholarFrontend:
+    def __init__(self, port: int, path: str) -> None:
+        self.ss_configs = {
+            "version": "1.1.1",
+            "icon": "assets/icon.png",
+            "mode": "default",
+            "port": port,
+            "path": path,
+            "theme": "light",
+        }
+        self.render = SimScholarRender()
+        self.ide = SimScholarIDE()
+        self.resource = SimScholarResource()
+        self.stat_handler = SimScholarStats(self.ss_configs["path"])
+        self.caller = SimScholarCalls(
+            self.stat_handler, self.ss_configs["port"], self.ss_configs["path"]
+        )
+        self.configurations = {
+            "boards": self.caller.opt["boards"],
+            "processors": self.caller.opt["processor"],
+            "memories": self.caller.opt["memory"],
+            "caches": self.caller.opt["cache"],
+        }
+        try:
+            self.caller.get_gem5_data()
+        except:
+            raise ValueError(f"Failed to obtain gem5 data. Is the port correct?")
         self.root_window()
 
     def verify(self, loc, sections, res, id):
@@ -52,11 +63,10 @@ class frontend:
     def root_window(self):
         # Create the main window
         root = tk.Tk()
-        ss_version = 1.1
-        root.title(f"SimScholar v{ss_version}")
-        img = PhotoImage(file="assets/icon.png")
+        root.title(f"SimScholar  v{self.ss_configs['version']}")
+        img = PhotoImage(file=self.ss_configs["icon"])
         root.iconphoto(True, img)
-        self.style.apply_style("darkmode")
+        self.styler = SimScholarStyling(root, self.ss_configs["theme"])
 
         notebook = ttk.Notebook(root)
         notebook.pack(expand=1, fill="both")
@@ -72,21 +82,26 @@ class frontend:
         notebook.add(tab4, text="Statistics")
         notebook.add(tab5, text="Options")
 
-        stat_frames = self.stats_window(tab4, self.stat_obj)
+        stat_frames = self.stats_window(tab4)
         self.config_window(tab1, stat_frames)
         self.saved_window(tab2)
         self.code_window(tab3)
         self.options_window(tab5)
         root.mainloop()
+        return root
 
     def configure_tabs(self, master):
         tabs = ttk.Notebook(master)
         tabs.pack(side="top", expand=True, fill="both")
 
-        tab1 = render.render_section(tabs, self.boards, "board")
-        tab2 = render.render_section(tabs, self.processors, "processor")
-        tab3 = render.render_section(tabs, self.memories, "memory")
-        tab4 = render.render_section(tabs, self.caches, "cache")
+        tab1 = self.render.render_section(tabs, self.configurations["boards"], "board")
+        tab2 = self.render.render_section(
+            tabs, self.configurations["processors"], "processor"
+        )
+        tab3 = self.render.render_section(
+            tabs, self.configurations["memories"], "memory"
+        )
+        tab4 = self.render.render_section(tabs, self.configurations["caches"], "cache")
 
         tabs.add(tab1, text="Board")
         tabs.add(tab2, text="Processor")
@@ -144,7 +159,7 @@ class frontend:
             text="Configure",
             command=lambda: self.verify(
                 hint_bar,
-                render.sections,
+                self.render.sections,
                 self.resource.resource_selected,
                 id_text_val.get(),
             ),
@@ -155,7 +170,7 @@ class frontend:
         simulate_button = ttk.Button(
             bottom,
             text="Simulate",
-            command=lambda: self.sim_helper(
+            command=lambda: self.caller.run_simulation(
                 hint_bar, sim_output, stats_frames, id_text_val.get()
             ),
             width=50,
@@ -164,53 +179,44 @@ class frontend:
 
     def resource_menu(self, master):
         # RESOURCE MANAGER
-        gem5_resources = ["x86-hello64-static", "arm-hello64-static"]
-
-        resource_type = tk.StringVar()
-        resource_binary = tk.StringVar()
+        resource_vars = [tk.StringVar(master), tk.StringVar(master)]
         resources = ttk.Frame(master)
         resources.pack(side="bottom", pady=10, expand=True, fill="both")
         ttk.Label(
             resources, text="Resource Manager", font=("TkDefaultFont", 10, "bold")
         ).pack(pady=(10, 5), padx=10, anchor="w")
 
-        def show_resource(resource_type):
-            global resource_selected
-            r = resource_type.get()
-            if r == "default":
-                custom_button.pack_forget()
-                resource_selected = ["default", gem5_resources[0]]
-                menu.pack(pady=(10, 5), padx=10, anchor="se")
-            elif r == "custom":
-                menu.pack_forget()
-                custom_button.pack(pady=(10, 5), padx=10, anchor="se")
+        resource_vars[1].set(self.resource.gem5_resources[0])
+        self.resource.resource_selected = ["default", resource_vars[1].get()]
+        menu = ttk.OptionMenu(
+            resources,
+            resource_vars[1],  # BINARY
+            self.resource.gem5_resources[0],
+            *self.resource.gem5_resources,
+            command=lambda t=resource_vars[1]: self.resource.select_gem5_binary(t),
+        )
+        custom_button = ttk.Button(
+            resources, text="Select Binary", command=self.resource.select_custom_binary
+        )
 
         ttk.Radiobutton(
             master=resources,
             text="gem5 Binary",
             value="default",
-            variable=resource_type,
-            command=lambda s=resource_type: show_resource(s),
+            variable=resource_vars[0],  # TYPE
+            command=lambda: self.resource.show_resource(
+                menu, custom_button, resource_vars
+            ),
         ).pack(pady=(10, 5), padx=10, anchor="w")
         ttk.Radiobutton(
             master=resources,
             text="Custom Binary",
             value="custom",
-            variable=resource_type,
-            command=lambda s=resource_type: show_resource(s),
+            variable=resource_vars[0],  # TYPE
+            command=lambda: self.resource.show_resource(
+                menu, custom_button, resource_vars
+            ),
         ).pack(pady=(10, 5), padx=10, anchor="w")
-
-        menu = tk.OptionMenu(
-            resources,
-            resource_binary,
-            *gem5_resources,
-            command=lambda t=resource_binary: self.resource.select_gem5_binary(t),
-        )
-        resource_binary.set(gem5_resources[0])
-
-        custom_button = ttk.Button(
-            resources, text="Select Binary", command=self.resource.select_custom_binary
-        )
 
     def saved_window(self, master):
         # Header label
@@ -312,7 +318,7 @@ class frontend:
         )
         compile_button.pack(side="right")
 
-    def stats_window(self, stats, obj):
+    def stats_window(self, stats):
         stats_height = 20
 
         # Header frame and label
@@ -327,12 +333,21 @@ class frontend:
         stats_frame = ttk.Frame(stats)
         stats_frame.pack(fill="both", expand=True)
 
+        scrollbar = tk.Scrollbar(stats_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
         # STAT NAME FRAME
         name_frame = ttk.Frame(stats_frame)
         name_frame.pack(side="left", fill="both", expand=True, padx=10, pady=5)
         ttk.Label(name_frame, text="Name", font=("TkDefaultFont", 10, "bold")).pack()
-        stats_name = tk.Canvas(
-            name_frame, width=350, height=stats_height * 20, bg="lightgray"
+        stats_name = tk.Text(
+            name_frame,
+            width=50,
+            height=stats_height,
+            bg="lightgray",
+            state="disabled",
+            fg="black",
+            yscrollcommand=scrollbar.set,
         )
         stats_name.pack(fill="both", expand=True)
 
@@ -340,8 +355,14 @@ class frontend:
         value_frame = ttk.Frame(stats_frame)
         value_frame.pack(side="left", fill="both", expand=True, padx=10, pady=5)
         ttk.Label(value_frame, text="Value", font=("TkDefaultFont", 10, "bold")).pack()
-        stats_val = tk.Canvas(
-            value_frame, width=100, height=stats_height * 20, bg="lightgray"
+        stats_val = tk.Text(
+            value_frame,
+            width=10,
+            height=stats_height,
+            bg="lightgray",
+            state="disabled",
+            fg="black",
+            yscrollcommand=scrollbar.set,
         )
         stats_val.pack(fill="both", expand=True)
 
@@ -351,12 +372,33 @@ class frontend:
         ttk.Label(
             comment_frame, text="Comment", font=("TkDefaultFont", 10, "bold")
         ).pack()
-        stats_comment = tk.Canvas(
-            comment_frame, width=400, height=stats_height * 20, bg="lightgray"
+        stats_comment = tk.Text(
+            comment_frame,
+            width=75,
+            height=stats_height,
+            bg="lightgray",
+            state="disabled",
+            fg="black",
+            yscrollcommand=scrollbar.set,
         )
         stats_comment.pack(fill="both", expand=True)
 
         frame = [stats_name, stats_val, stats_comment]
+
+        scrollbar.config(command=lambda *args: sync_scroll(frame, *args))
+
+        def sync_scroll(widgets, *args):
+            for widget in widgets:
+                widget.yview(*args)
+
+        for text_widget in frame:
+            text_widget.config(yscrollcommand=scrollbar.set)
+            text_widget.bind(
+                "<MouseWheel>",
+                lambda event, widgets=frame: sync_scroll(
+                    widgets, "scroll", -1 * int(event.delta / 120), "units"
+                ),
+            )
 
         # Button frame
         button_frame = ttk.Frame(stats)
@@ -365,38 +407,27 @@ class frontend:
         refresh_button = ttk.Button(
             button_frame,
             text="Refresh",
-            command=lambda t=frame: obj.parse_stats(t),
+            command=lambda t=frame: self.stat_handler.parse_stats(t),
             width=10,
         )
         refresh_button.pack(side="right")
         diagram_button = ttk.Button(
             button_frame,
             text="View Configuration Diagram",
-            command=lambda t=stats: obj.config_diagram_window(t),
+            command=lambda t=stats: self.stat_handler.config_diagram_window(t),
             width=25,
         )
         diagram_button.pack(side="left")
 
-        if self.mode == "all":
-            prev_button = ttk.Button(
-                button_frame,
-                text="Previous",
-                command=lambda t=frame: self.show_stats(t, False),
-                width=20,
-            )
-            prev_button.pack(side="left", padx=10)
-
-            next_button = ttk.Button(
-                button_frame,
-                text="Next",
-                command=lambda t=frame: self.show_stats(t, True),
-                width=20,
-            )
-            next_button.pack(side="right", padx=10)
         return frame
 
     def options_window(self, master):
-        option_list = [tk.IntVar(master), tk.StringVar(master)]
+        option_list = [
+            tk.IntVar(master),  # PORT
+            tk.StringVar(master),  # PATH
+            tk.StringVar(master),  # STATS MODE
+            tk.StringVar(master),  # THEME
+        ]
         # Header label
         header_label = ttk.Label(
             master, text="Options", font=("TkDefaultFont", 16, "bold")
@@ -405,7 +436,7 @@ class frontend:
 
         # PORT
         ttk.Label(master, text="Port", anchor=tk.W, wraplength=0).pack(padx=5, pady=5)
-        option_list[0].set(str(self.port))
+        option_list[0].set(str(self.ss_configs["port"]))
         ttk.Entry(
             master,
             width=10,
@@ -416,12 +447,37 @@ class frontend:
         ttk.Label(master, text="Gem5 Path", anchor=tk.W, wraplength=0).pack(
             padx=5, pady=5
         )
-        option_list[1].set(self.backend_path)
+        option_list[1].set(self.ss_configs["path"])
         ttk.Entry(
             master,
             width=100,
             textvariable=option_list[1],
         ).pack(padx=5, pady=5)
+
+        # STATS MODE
+        ttk.Label(master, text="Stats Mode", anchor=tk.W, wraplength=0).pack(
+            padx=5, pady=5
+        )
+        option_list[2].set(self.ss_configs["mode"])
+        ttk.Radiobutton(
+            master=master, text="Default Mode", value="default", variable=option_list[2]
+        ).pack(pady=(10, 5), padx=10, anchor="center")
+        ttk.Radiobutton(
+            master=master, text="All Mode", value="all", variable=option_list[2]
+        ).pack(pady=(10, 5), padx=10, anchor="center")
+
+        # THEME
+        ttk.Label(master, text="Theme", anchor=tk.W, wraplength=0).pack(padx=5, pady=5)
+        option_list[3].set(self.ss_configs["theme"])
+        ttk.Radiobutton(
+            master=master, text="Light", value="light", variable=option_list[3]
+        ).pack(pady=(10, 5), padx=10, anchor="center")
+        ttk.Radiobutton(
+            master=master, text="Dark", value="dark", variable=option_list[3]
+        ).pack(pady=(10, 5), padx=10, anchor="center")
+        ttk.Radiobutton(
+            master=master, text="Navy", value="navy", variable=option_list[3]
+        ).pack(pady=(10, 5), padx=10, anchor="center")
 
         # UPDATE BUTTON
         ttk.Button(
@@ -432,20 +488,48 @@ class frontend:
         ).pack(side="bottom", padx=2, pady=2)
 
     def update_options(self, options: list):
-        new_port = options[0].get()
-        self.port = new_port
-        print(f"Port updated to {new_port}.")
+        if options[0].get() != self.ss_configs["port"]:
+            self.ss_configs["port"] = options[0].get()
+            printdebug(f"[options] port updated to {self.ss_configs['port']}.")
 
-        new_path = options[1].get()
-        self.backend_path = new_path
-        print(f"Backend path updated to {new_path}.")
+        if options[1].get() != self.ss_configs["path"]:
+            self.ss_configs["path"] = options[1].get()
+            printdebug(f"[options] backend path updated to {self.ss_configs['path']}.")
 
-        self.caller = call(self.port, self.backend_path)
+        self.caller = SimScholarCalls(
+            self.stat_handler, self.ss_configs["port"], self.ss_configs["path"]
+        )
 
-    def sim_helper(self, hint_bar, sim_output, stats_frames, id_text_val):
-        self.stats_obj = self.caller.run_simulation(
-                hint_bar, sim_output, stats_frames, id_text_val
-            )
+        if options[2].get() != self.ss_configs["mode"]:
+            self.ss_configs["mode"] = options[2].get()
+            self.stat_handler.update_mode(self.ss_configs["mode"])
+            printdebug(f"[options] stat mode updated to {self.ss_configs['mode']}.")
+
+        if options[3].get() != self.ss_configs["theme"]:
+            self.ss_configs["theme"] = options[3].get()
+            self.styler.update_theme(self.ss_configs["theme"])
+            printdebug(f"[options] theme updated to {self.ss_configs['theme']} mode.")
 
 
-myfrontend = frontend()
+class SimScholarStyling:
+    def __init__(self, root, theme) -> None:
+        self.root = root
+        self.theme = theme
+        self.root.tk.call("source", "assets/themes.tcl")
+        self.apply_style()
+
+    def update_theme(self, theme):
+        self.theme = theme
+        self.apply_style()
+
+    def apply_style(self):
+        style = ttk.Style()
+        match self.theme:
+            case "dark":
+                style.theme_use("darkmode")
+            case "light":
+                style.theme_use("lightmode")
+            case "navy":
+                style.theme_use("navymode")
+            case _:
+                raise ValueError(f"Unrecognized theme: {self.theme}")
