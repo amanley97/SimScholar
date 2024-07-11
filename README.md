@@ -14,28 +14,28 @@
 
 ### Features:
 #### gem5 Configuration:
-  ![Configuration Menu](assets/docs/ss1.png)
   - gem5 simulations in SE mode
   - Simple boards
   - CPU types: atomic, timing, O3, minor
   - ISAs: x86 and ARM
   - All stdlib memory types
   - All stdlib cache types
-  ![Saved Menu](assets/docs/ss1-1.png)
+![Configuration Menu](assets/docs/ss1.png)
   - view saved configurations
+![Saved Menu](assets/docs/ss1-1.png)
 
 #### User Programs:
-  ![IDE](assets/docs/ss2.png)
   - Open, save, compile C programs
   - Currently x86 architecture only.
   - Load as resource for gem5
+![IDE](assets/docs/ss2.png)
 
 #### Stats:
-  ![Stats Menu](assets/docs/ss3.png)
   - View simulation statistics
   - Default parses most important stats
   - Option to enable all stats
+![Stats Menu](assets/docs/ss3.png)
 
 #### Option Menu:
-  ![Option Menu](assets/docs/ss4.png)
   - Modify SimScholar options
+![Option Menu](assets/docs/ss4.png)
