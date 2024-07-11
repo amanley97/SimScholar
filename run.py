@@ -14,6 +14,9 @@
 from src.frontend import SimScholarFrontend
 
 if __name__ == "__main__":
+    port = 8080
+    path="/path/to/gem5/"
+    
     frontend = SimScholarFrontend(
-        port=8080, path="/path/to/gem5/"
+        port=port, path=path
     )

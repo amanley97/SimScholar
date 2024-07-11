@@ -91,6 +91,12 @@ class SimScholarCalls:
         selected_opts = self.http_request(url, "PUT", board_info)
         output_location.config(text=str(selected_opts.text))
 
+    def shutdown(self):
+        printdebug("[calls] shutting down backend")
+        url = f"shutdown"
+        response = self.http_request(url, "PUT")
+        return response
+
     def view_saved(self, text):
         printdebug("[calls] viewing saved configs.")
         url = f"simulation/saved"

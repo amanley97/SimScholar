@@ -25,12 +25,13 @@ from utils.printdebug import printdebug
 class SimScholarFrontend:
     def __init__(self, port: int, path: str) -> None:
         self.ss_configs = {
-            "version": "1.1.1",
+            "version": "1.1.2",
             "icon": "assets/icon.png",
             "mode": "default",
             "port": port,
             "path": path,
             "theme": "light",
+            "hint": "Backend responses will display here."
         }
         self.render = SimScholarRender()
         self.ide = SimScholarIDE()
@@ -49,7 +50,8 @@ class SimScholarFrontend:
             self.caller.get_gem5_data()
         except:
             raise ValueError(f"Failed to obtain gem5 data. Is the port correct?")
-        self.root_window()
+        self.root = self.root_window()
+        self.root.mainloop()
 
     def verify(self, loc, sections, res, id):
         printdebug("[frontend] verifying resource")
@@ -87,7 +89,6 @@ class SimScholarFrontend:
         self.saved_window(tab2)
         self.code_window(tab3)
         self.options_window(tab5)
-        root.mainloop()
         return root
 
     def configure_tabs(self, master):
@@ -141,9 +142,8 @@ class SimScholarFrontend:
         bottom = ttk.Frame(master)
         bottom.pack(side="bottom", fill="x", padx=5, pady=5)
         # HINT BAR
-        hint = str("Hints: Some helpful information here")
         hint_bar = ttk.Label(
-            bottom, text=hint, relief=tk.SUNKEN, anchor=tk.W, wraplength=0
+            bottom, text=self.ss_configs['hint'], relief=tk.SUNKEN, anchor=tk.W, wraplength=0
         )
         hint_bar.pack(side="top", fill="x")
         # CONFIGURE ID
@@ -479,6 +479,14 @@ class SimScholarFrontend:
             master=master, text="Navy", value="navy", variable=option_list[3]
         ).pack(pady=(10, 5), padx=10, anchor="center")
 
+        # SHUTDOWN BUTTON
+        ttk.Button(
+            master,
+            text="Shutdown Backend",
+            command=lambda: self.shutdown_helper(),
+            width=17,
+        ).pack(side="bottom", padx=2, pady=2, anchor="se")
+
         # UPDATE BUTTON
         ttk.Button(
             master,
@@ -486,6 +494,14 @@ class SimScholarFrontend:
             command=lambda: self.update_options(option_list),
             width=50,
         ).pack(side="bottom", padx=2, pady=2)
+
+    def shutdown_helper(self):
+        warn = messagebox.askokcancel("Shutdown Backend", "Are you sure you want to terminate the backend server?")
+        if warn:
+            resp = self.caller.shutdown()
+            messagebox.showwarning("Backend Response", resp.json()['message'] + "\nSimScholar will now exit...")
+            self.root.destroy()
+
 
     def update_options(self, options: list):
         if options[0].get() != self.ss_configs["port"]:
