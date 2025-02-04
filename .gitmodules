@@ -1,3 +1,6 @@
 [submodule "gema"]
 	path = gema
 	url = https://github.com/amanley97/GEMA
+[submodule "gem5"]
+	path = gem5
+	url = https://github.com/gem5/gem5
