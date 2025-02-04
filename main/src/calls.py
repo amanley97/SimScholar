@@ -13,7 +13,7 @@
 # ----------------------------------------------------------------------------
 
 import requests, json
-from utils.printdebug import printdebug
+from main.utils.printdebug import printdebug
 
 
 class SimScholarCalls:

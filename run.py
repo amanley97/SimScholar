@@ -11,12 +11,14 @@
 #         Alex Manley (amanley97@ku.edu)
 #         Mahmudul Hasan (m.hasan@ku.edu)
 # ----------------------------------------------------------------------------
-from src.frontend import SimScholarFrontend
+import os
+from main.src.frontend import SimScholarFrontend
 
 if __name__ == "__main__":
     port = 8080
-    path="/path/to/gem5/"
-    
+    path = os.path.join(os.getcwd(), "gem5")
+
     frontend = SimScholarFrontend(
         port=port, path=path
     )
+

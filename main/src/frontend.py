@@ -19,7 +19,7 @@ from .calls import SimScholarCalls
 from .ide import SimScholarIDE
 from .ide import SimScholarResource
 from .stats import SimScholarStats
-from utils.printdebug import printdebug
+from main.utils.printdebug import printdebug
 
 
 class SimScholarFrontend:

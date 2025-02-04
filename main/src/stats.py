@@ -14,7 +14,7 @@
 
 import tkinter as tk
 from tkinter import messagebox, Toplevel
-from utils.printdebug import printdebug
+from main.utils.printdebug import printdebug
 import os
 from PIL import Image, ImageTk
 from svglib.svglib import svg2rlg

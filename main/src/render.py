@@ -14,7 +14,7 @@
 
 import tkinter as tk
 from tkinter import ttk
-from utils.printdebug import printdebug
+from main.utils.printdebug import printdebug
 
 
 class SimScholarRender:

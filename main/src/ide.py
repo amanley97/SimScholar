@@ -15,7 +15,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import subprocess
-from utils.printdebug import printdebug
+from main.utils.printdebug import printdebug
 
 
 class SimScholarIDE:
