@@ -20,22 +20,22 @@
   - ISAs: x86 and ARM
   - All stdlib memory types
   - All stdlib cache types
-![Configuration Menu](assets/docs/ss1.png)
+![Configuration Menu](main/assets/docs/ss1.png)
   - view saved configurations
-![Saved Menu](assets/docs/ss1-1.png)
+![Saved Menu](main/assets/docs/ss1-1.png)
 
 #### User Programs:
   - Open, save, compile C programs
   - Currently x86 architecture only.
   - Load as resource for gem5
-![IDE](assets/docs/ss2.png)
+![IDE](main/assets/docs/ss2.png)
 
 #### Stats:
   - View simulation statistics
   - Default parses most important stats
   - Option to enable all stats
-![Stats Menu](assets/docs/ss3.png)
+![Stats Menu](main/assets/docs/ss3.png)
 
 #### Option Menu:
   - Modify SimScholar options
-![Option Menu](assets/docs/ss4.png)
+![Option Menu](main/assets/docs/ss4.png)
