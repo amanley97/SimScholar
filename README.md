@@ -1,4 +1,4 @@
-# SimScholar v1.1.2
+# SimScholar
 **SimScholar is a computer architecture learning tool utilizing gem5**
 - This project would not be possible without [gem5](https://github.com/gem5/gem5).
 - The GUI utilizes the GEMA backend - See [gema](https://github.com/amanley97/gEMA)
