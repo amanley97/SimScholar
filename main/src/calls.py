@@ -13,6 +13,7 @@
 # ----------------------------------------------------------------------------
 
 import requests, json
+from xmlrpc.client import ServerProxy
 from main.utils.printdebug import printdebug
 
 
@@ -35,11 +36,13 @@ class SimScholarCalls:
                 "type": [],
             },
         }
+        self.proxy = ServerProxy(f"http://localhost:{self.port}")
 
     def get_gem5_data(self):
         req = self.http_request("config/options", "GET")
-        self.data = req.json() if req.status_code == 200 else ["NULL"]
-        self.parse_data()
+        self.data = self.proxy.get_config_options()
+        print(self.data)
+        # self.parse_data()
 
         return self.data
 
@@ -57,32 +60,6 @@ class SimScholarCalls:
                     for item in tmp_params:
                         if item != "membus":
                             self.opt["cache"].update({item: 0})
-
-    def http_request(self, api_endpoint, request_type, data=None):
-        headers = {"Content-Type": "application/json"}
-        full_url = f"http://localhost:{self.port}/{api_endpoint}"
-
-        try:
-            if request_type.upper() == "GET":
-                response = requests.get(full_url, headers=headers)
-            elif request_type.upper() == "PUT":
-                response = requests.put(
-                    full_url, data=json.dumps(data), headers=headers
-                )
-            elif request_type.upper() == "POST":
-                response = requests.post(
-                    full_url, data=json.dumps(data), headers=headers
-                )
-            else:
-                raise ValueError(
-                    "Invalid request type. Supported types are 'GET', 'PUT', and 'POST'."
-                )
-            printdebug(f"[calls] {request_type} for {api_endpoint} successful.")
-            return response
-
-        except requests.exceptions.RequestException as e:
-            print(f"Request failed: {e}")
-            return response
 
     def configure_simulation(self, output_location, board_info, resource, id):
         printdebug("[calls] configuration sent to gem5")
