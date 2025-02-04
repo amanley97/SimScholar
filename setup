@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+import shutil
+
+# Define paths
+GEM5_DIR = os.path.join(os.getcwd(), "gem5")
+GEMA_SOURCE = os.path.join(os.getcwd(), "gema")  # Adjust if `gema` is located elsewhere
+GEMA_TARGET_DIR = os.path.join(GEM5_DIR, "src", "python", "gem5", "utils")
+GEMA_SYMLINK = os.path.join(GEMA_TARGET_DIR, "gema")
+
+def install_gem5_prereqs():
+    """Installs gem5 dependencies based on the system."""
+    print("Installing gem5 prerequisites...")
+
+    prereqs_command = [
+        "sudo apt install -y",
+        "build-essential scons python3-dev git pre-commit zlib1g zlib1g-dev",
+        "libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev",
+        "libboost-all-dev  libhdf5-serial-dev python3-pydot python3-venv python3-tk mypy",
+        "m4 libcapstone-dev libpng-dev libelf-dev pkg-config wget cmake doxygen"
+    ]
+
+    result = subprocess.run(" ".join(prereqs_command), shell=True)
+
+    if result.returncode == 0:
+        print("gem5 prerequisites installed successfully!")
+    else:
+        print("Failed to install gem5 prerequisites. Check the logs.")
+
+def create_symlink():
+    """Creates a symbolic link to gema inside gem5."""
+    if not os.path.exists(GEMA_TARGET_DIR):
+        os.makedirs(GEMA_TARGET_DIR)
+
+    if os.path.exists(GEMA_SYMLINK) or os.path.islink(GEMA_SYMLINK):
+        os.remove(GEMA_SYMLINK)  # Remove existing link if present
+
+    os.symlink(GEMA_SOURCE, GEMA_SYMLINK)
+    print(f"Symlink created: {GEMA_SOURCE} -> {GEMA_SYMLINK}")
+
+def build_gem5():
+    """Builds gem5 using Kconfig-based build system."""
+    os.chdir(GEM5_DIR)  # Change directory to gem5 root
+
+    print("Setting up gem5 build configuration using Kconfig...")
+    config_command = ["scons", "defconfig", "gem5_build", "build_opts/ALL"]
+    result = subprocess.run(config_command, shell=False)
+
+    if result.returncode != 0:
+        print("Failed to set gem5 defconfig. Check the logs.")
+        return
+
+    print("Building gem5...")
+    build_command = ["scons", f"-j{os.cpu_count()}", "gem5_build/gem5.opt"]
+    result = subprocess.run(build_command, shell=False)
+
+    if result.returncode == 0:
+        print("gem5 build completed successfully!")
+    else:
+        print("gem5 build failed. Check the logs.")
+
+if __name__ == "__main__":
+    install_gem5_prereqs()
+    create_symlink()
+    build_gem5()
