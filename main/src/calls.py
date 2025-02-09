@@ -1,6 +1,6 @@
-import requests, json
+import json
 from xmlrpc.client import ServerProxy
-from main.utils.printdebug import printdebug
+# from main.utils.printdebug import printdebug
 
 
 class SimScholarCalls:
@@ -25,15 +25,11 @@ class SimScholarCalls:
         self.proxy = ServerProxy(f"http://localhost:{self.port}")
 
     def get_gem5_data(self):
-        req = self.http_request("config/options", "GET")
-        self.data = self.proxy.get_config_options()
-        print(self.data)
-        # self.parse_data()
-
+        self.parse_data(json.loads(self.proxy.get_config_options()))
         return self.data
 
-    def parse_data(self):
-        for key, value in self.data.items():
+    def parse_data(self, data):
+        for key, value in data.items():
             tmp_params = []
             self.opt["boards"]["type"].append(key)
             self.opt["processor"]["cpu"] = value["processor"]
@@ -56,15 +52,12 @@ class SimScholarCalls:
 
     def shutdown(self):
         printdebug("[calls] shutting down backend")
-        url = f"shutdown"
-        response = self.http_request(url, "PUT")
+        response = self.proxy.shutdown()
         return response
 
     def view_saved(self, text):
         printdebug("[calls] viewing saved configs.")
-        url = f"simulation/saved"
-        req = self.http_request(url, "GET")
-        saved = req.json() if req.status_code == 200 else ["NULL"]
+        saved = self.proxy.get_configs()
         text.configure(state="normal")
         text.delete("1.0", "end")
         text.insert("1.0", json.dumps(saved, indent=4))
@@ -72,8 +65,7 @@ class SimScholarCalls:
 
     def run_simulation(self, output_location, sim_out, stats_out, id):
         printdebug("[calls] running the simulation!")
-        url = f"simulation/{id}/run"
-        output = self.http_request(url, "PUT")
+        output = self.proxy.run_simulation(id)
         out_id = str(output.text)
         output_location.config(text=out_id)
         self.display_sim_out(sim_out, stats_out, out_id)
@@ -111,7 +103,8 @@ class SimScholarCalls:
         return self.stats
 
 
-# myobj = calls(8080)
-# myobj.get_gem5_data()
+if __name__ == "__main__":
+    myobj = SimScholarCalls(stats_handler=None, port=8080, path='/home/a599m019/Projects/Current/SimScholar/gem5')
+    myobj.get_gem5_data()
 
-# print(myobj.data)
+    print(myobj.data)
