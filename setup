@@ -2,7 +2,6 @@
 
 import os
 import subprocess
-import shutil
 
 # Define paths
 GEM5_DIR = os.path.join(os.getcwd(), "gem5")
@@ -40,7 +39,7 @@ def create_symlink():
     os.symlink(GEMA_SOURCE, GEMA_SYMLINK)
     print(f"Symlink created: {GEMA_SOURCE} -> {GEMA_SYMLINK}")
 
-def build_gem5():
+def build_gem5(usr_extras: str):
     """Builds gem5 using Kconfig-based build system."""
     os.chdir(GEM5_DIR)  # Change directory to gem5 root
 
@@ -53,7 +52,7 @@ def build_gem5():
         return
 
     print("Building gem5...")
-    build_command = ["scons", f"-j{os.cpu_count()}", "gem5_build/gem5.opt"]
+    build_command = ["scons", f"-j{os.cpu_count()}", "gem5_build/gem5.opt", usr_extras]
     result = subprocess.run(build_command, shell=False)
 
     if result.returncode == 0:
@@ -63,5 +62,5 @@ def build_gem5():
 
 if __name__ == "__main__":
     install_gem5_prereqs()
-    create_symlink()
-    build_gem5()
+    # create_symlink()
+    build_gem5(f"EXTRAS={GEMA_SOURCE}")
