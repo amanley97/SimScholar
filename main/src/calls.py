@@ -1,6 +1,6 @@
 import json
 from xmlrpc.client import ServerProxy
-# from main.utils.printdebug import printdebug
+from main.utils.printdebug import printdebug
 
 
 class SimScholarCalls:
@@ -43,32 +43,73 @@ class SimScholarCalls:
                         if item != "membus":
                             self.opt["cache"].update({item: 0})
 
-    def configure_simulation(self, output_location, board_info, resource, id):
-        printdebug("[calls] configuration sent to gem5")
-        url = f"simulation/{id}/configure"
-        board_info["resource"] = resource
-        selected_opts = self.http_request(url, "PUT", board_info)
-        output_location.config(text=str(selected_opts.text))
+    def configure_simulation(self, output_location, usr_config, resource, id):
+        printdebug("[calls] Configuration sent to gem5")
+        messages = []
+
+        messages.append(json.loads(self.proxy.add_config(id)))
+
+        messages.append(json.loads(self.proxy.set_board(
+            id, 
+            usr_config['board']['type'], 
+            usr_config['board']['clk']
+        )))
+
+        messages.append(json.loads(self.proxy.set_processor(
+            id, 
+            usr_config['processor']['isa'], 
+            usr_config['processor']['type'],
+            usr_config['processor']['cpu'],
+            usr_config['processor']['ncores']
+        )))
+
+        messages.append(json.loads(self.proxy.set_memory(
+            id, 
+            usr_config['memory']['type'], 
+            usr_config['memory']['size']
+        )))
+
+        messages.append(json.loads(self.proxy.set_cache(
+            id,
+            usr_config['cache']['type'],
+            usr_config['cache']['l1d_size'], 
+            usr_config['cache']['l1i_size'], 
+            usr_config['cache']['l2_size'], 
+            usr_config['cache']['l1d_assoc'], 
+            usr_config['cache']['l1i_assoc'], 
+            usr_config['cache']['l2_assoc']
+        )))
+
+        messages.append(json.loads(self.proxy.set_resource(
+            id, 
+            resource[1]
+        )))
+
+        output_location.config(text=messages)
+    
 
     def shutdown(self):
         printdebug("[calls] shutting down backend")
-        response = self.proxy.shutdown()
+        response = json.loads(self.proxy.shutdown())
         return response
 
-    def view_saved(self, text):
+    def view_saved(self, render_box):
         printdebug("[calls] viewing saved configs.")
-        saved = self.proxy.get_configs()
-        text.configure(state="normal")
-        text.delete("1.0", "end")
-        text.insert("1.0", json.dumps(saved, indent=4))
-        text.configure(state="disabled")
+        saved = json.loads(self.proxy.get_configs())
+        render_box.configure(state="normal")
+        render_box.delete("1.0", "end")
+        render_box.insert("1.0", json.dumps(saved))
+        render_box.configure(state="disabled")
 
     def run_simulation(self, output_location, sim_out, stats_out, id):
         printdebug("[calls] running the simulation!")
-        output = self.proxy.run_simulation(id)
-        out_id = str(output.text)
-        output_location.config(text=out_id)
-        self.display_sim_out(sim_out, stats_out, out_id)
+        output = json.loads(self.proxy.run_simulation(id))
+        output_location.config(text=output)
+
+        sim = json.loads(self.proxy.get_sims())
+        self.stats.update_path(sim[-1]['path'])
+
+        # self.display_sim_out(sim_out, stats_out, out_id)
 
     def display_sim_out(self, sim_out, stats_out, id):
         def parse_simulation_string(simulation_string):

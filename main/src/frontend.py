@@ -12,7 +12,7 @@ class SimScholarFrontend:
     def __init__(self, port: int, path: str) -> None:
         self.ss_configs = {
             "version": "1.1.2",
-            "icon": "assets/icon.png",
+            "icon": "main/assets/icon.png",
             "mode": "default",
             "port": port,
             "path": path,
@@ -22,7 +22,7 @@ class SimScholarFrontend:
         self.render = SimScholarRender()
         self.ide = SimScholarIDE()
         self.resource = SimScholarResource()
-        self.stat_handler = SimScholarStats(self.ss_configs["path"])
+        self.stat_handler = SimScholarStats()
         self.caller = SimScholarCalls(
             self.stat_handler, self.ss_configs["port"], self.ss_configs["path"]
         )
@@ -517,7 +517,7 @@ class SimScholarStyling:
     def __init__(self, root, theme) -> None:
         self.root = root
         self.theme = theme
-        self.root.tk.call("source", "assets/themes.tcl")
+        self.root.tk.call("source", "main/assets/themes.tcl")
         self.apply_style()
 
     def update_theme(self, theme):

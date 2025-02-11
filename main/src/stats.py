@@ -8,9 +8,9 @@ from reportlab.graphics import renderPM
 
 
 class SimScholarStats:
-    def __init__(self, path) -> None:
+    def __init__(self) -> None:
         self.mode = "default"
-        self.path = path
+        self.path = ""
         self.sim_id = 0
         self.config_id = 0
         self.names = []
@@ -27,6 +27,9 @@ class SimScholarStats:
             "overallhits::total",
             "overallmisses::total",
         ]
+
+    def update_path(self, new_path):
+        self.path = new_path
 
     def _show_stats(self, text_widgets):
         def display_stat(text_widget, array):
@@ -79,9 +82,7 @@ class SimScholarStats:
             printdebug("[error] invalid stats mode.")
 
     def parse_stats(self, text_widgets):
-        out_path = (
-            self.path + f"/m5out/config_{self.config_id}_sim_{self.sim_id}/stats.txt"
-        )
+        out_path = (self.path + "/stats.txt")
         printdebug(f"[stats] Refreshing Stats: {out_path}")
         if not os.path.exists(out_path):
             printdebug(f"[stats] file {out_path} not found.")
@@ -134,10 +135,7 @@ class SimScholarStats:
             self._show_stats(text_widgets)
 
     def config_diagram_window(self, root, scale=0.6):
-        svg_path = (
-            self.path
-            + f"/m5out/config_{self.config_id}_sim_{self.sim_id}/config.dot.svg"
-        )
+        svg_path = (self.path + "/config.dot.svg")
         if not os.path.exists(svg_path):
             printdebug(f"[stats] file {svg_path} not found.")
             messagebox.showerror("Error", "No Configuration Diagram found!")
@@ -147,7 +145,7 @@ class SimScholarStats:
         image = renderPM.drawToPIL(drawing)
         new_width = int(image.width * scale)
         new_height = int(image.height * scale)
-        image = image.resize((new_width, new_height), Image.ANTIALIAS)
+        image = image.resize((new_width, new_height))
 
         top = Toplevel(root)
         top.title(f"Configuration Diagram: config_{self.config_id}_sim_{self.sim_id}")
