@@ -43,7 +43,7 @@ class SimScholarCalls:
                         if item != "membus":
                             self.opt["cache"].update({item: 0})
 
-    def configure_simulation(self, output_location, usr_config, resource, id):
+    def configure_simulation(self, usr_config, resource, id):
         printdebug("[calls] Configuration sent to gem5")
         messages = []
 
@@ -84,8 +84,7 @@ class SimScholarCalls:
             id, 
             resource[1]
         )))
-
-        output_location.config(text=messages)
+        print(messages)
     
 
     def shutdown(self):
@@ -101,15 +100,13 @@ class SimScholarCalls:
         render_box.insert("1.0", json.dumps(saved))
         render_box.configure(state="disabled")
 
-    def run_simulation(self, output_location, sim_out, stats_out, id):
+    def run_simulation(self, id):
         printdebug("[calls] running the simulation!")
         output = json.loads(self.proxy.run_simulation(id))
-        output_location.config(text=output)
+        print(output)
 
         sim = json.loads(self.proxy.get_sims())
         self.stats.update_path(sim[-1]['path'])
-
-        # self.display_sim_out(sim_out, stats_out, out_id)
 
     def display_sim_out(self, sim_out, stats_out, id):
         def parse_simulation_string(simulation_string):

@@ -6,18 +6,19 @@ from .ide import SimScholarIDE
 from .ide import SimScholarResource
 from .stats import SimScholarStats
 from main.utils.printdebug import printdebug
+from subprocess import Popen
+import time
 
 
 class SimScholarFrontend:
-    def __init__(self, port: int, path: str) -> None:
+    def __init__(self, port: int, path: str, process: Popen) -> None:
         self.ss_configs = {
             "version": "1.1.2",
             "icon": "main/assets/icon.png",
             "mode": "default",
             "port": port,
             "path": path,
-            "theme": "light",
-            "hint": "Backend responses will display here."
+            "theme": "light"
         }
         self.render = SimScholarRender()
         self.ide = SimScholarIDE()
@@ -32,6 +33,9 @@ class SimScholarFrontend:
             "memories": self.caller.opt["memory"],
             "caches": self.caller.opt["cache"],
         }
+        self.process = process
+        self.start_output_thread()
+
         try:
             self.caller.get_gem5_data()
         except:
@@ -39,16 +43,24 @@ class SimScholarFrontend:
         self.root = self.root_window()
         self.root.mainloop()
 
-    def verify(self, loc, sections, res, id):
+    # def update_wraplength(event=None):
+    #     hint_bar.config(wraplength=bottom.winfo_width())
+
+    def start_output_thread(self):
+        import threading
+        """Starts a background thread to capture gem5 output without freezing the UI."""
+        threading.Thread(target=self.update_output, daemon=True).start()
+
+    def verify(self, sections, res, id):
         printdebug("[frontend] verifying resource")
         if len(res) == 0:
             messagebox.showerror("Error", "No Simulation Resource Selected!")
         elif id == None:
             messagebox.showerror("Error", "No Configuration ID!")
         else:
-            self.caller.configure_simulation(loc, sections, res, id)
+            self.caller.configure_simulation(sections, res, id)
 
-    def root_window(self):
+    def root_window(self) -> tk.Tk:
         # Create the main window
         root = tk.Tk()
         root.title(f"SimScholar  v{self.ss_configs['version']}")
@@ -77,7 +89,7 @@ class SimScholarFrontend:
         self.options_window(tab5)
         return root
 
-    def configure_tabs(self, master):
+    def configure_tabs(self, master: ttk.Frame):
         tabs = ttk.Notebook(master)
         tabs.pack(side="top", expand=True, fill="both")
 
@@ -95,7 +107,32 @@ class SimScholarFrontend:
         tabs.add(tab3, text="Memory")
         tabs.add(tab4, text="Cache Hierarchy")
 
-    def config_window(self, master, stats_frames):
+    def update_output(self):
+        """Reads stdout line by line and updates the Tkinter Text widget without blocking."""
+        while self.process.poll() is None:  # Process is still running
+            line = self.process.stdout.readline()
+            if line:  # Only update if there is new output
+                self.root.after(0, self.append_output, line)  # Schedule UI update
+
+        self.process.stdout.close()
+        time.sleep(0.1)
+
+    def append_output(self, line):
+        """Updates the Text widget with new gem5 output."""
+        self.sim_output.config(state="normal")
+        self.sim_output.insert(tk.END, line)
+        self.sim_output.see(tk.END)  # Auto-scroll
+        self.sim_output.config(state="disabled")
+    
+    def clear_output_and_sim(self, config_id):
+        """Clears the simulation output textbox."""
+        self.sim_output.config(state="normal")  # Enable editing
+        self.sim_output.delete("1.0", tk.END)  # Delete all text
+        self.sim_output.config(state="disabled")  # Disable editing
+
+        self.caller.run_simulation(config_id)
+
+    def config_window(self, master: ttk.Frame, stats_frames: ttk.Frame):
         # Header label
         header_label = ttk.Label(
             master,
@@ -114,7 +151,7 @@ class SimScholarFrontend:
         self.configure_tabs(frame)  # CONFIGURATION TABS
         self.resource_menu(frame)  # RESOURCE MANAGER
         # Canvas on the right
-        sim_output = tk.Text(
+        self.sim_output = tk.Text(
             main,
             width=80,
             height=30,
@@ -122,16 +159,12 @@ class SimScholarFrontend:
             foreground="black",
             state="disabled",
         )
-        sim_output.pack(side="right", fill="both", expand=True)
+        self.sim_output.pack(side="right", fill="both", expand=True)
 
         # Bottom frame for hint bar and buttons
         bottom = ttk.Frame(master)
         bottom.pack(side="bottom", fill="x", padx=5, pady=5)
-        # HINT BAR
-        hint_bar = ttk.Label(
-            bottom, text=self.ss_configs['hint'], relief=tk.SUNKEN, anchor=tk.W, wraplength=0
-        )
-        hint_bar.pack(side="top", fill="x")
+
         # CONFIGURE ID
         id_text = ttk.Label(bottom, text="Config ID", anchor=tk.W, wraplength=0)
         id_text.pack(side="left", padx=5, pady=5)
@@ -139,29 +172,26 @@ class SimScholarFrontend:
         id_text_val.set(0)
         id_button = ttk.Entry(bottom, width=10, textvariable=id_text_val)
         id_button.pack(side="left", padx=5, pady=5)
+
         # CONFIGURE BUTTON
         configure_button = ttk.Button(
             bottom,
             text="Configure",
             command=lambda: self.verify(
-                hint_bar,
                 self.render.sections,
                 self.resource.resource_selected,
                 id_text_val.get(),
             ),
             width=30,
-        )
-        configure_button.pack(side="left", padx=5, pady=5)
+        ).pack(side="left", padx=5, pady=5)
+
         # SIMULATE BUTTON
         simulate_button = ttk.Button(
             bottom,
             text="Simulate",
-            command=lambda: self.caller.run_simulation(
-                hint_bar, sim_output, stats_frames, id_text_val.get()
-            ),
+            command=lambda: self.clear_output_and_sim(id_text_val.get()),
             width=50,
-        )
-        simulate_button.pack(side="right", padx=2, pady=2)
+        ).pack(side="right", padx=2, pady=2)
 
     def resource_menu(self, master):
         # RESOURCE MANAGER

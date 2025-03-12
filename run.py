@@ -33,7 +33,10 @@ def start_gem5():
     gem5_process = subprocess.Popen(
         [GEM5_BIN, "-m", "gem5.utils.gema", str(GEMA_PORT), "--m5_override", os.getcwd()],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        stderr=subprocess.PIPE,
+        text=True,
+        bufsize=1,  # Line buffering
+        universal_newlines=True
     )
 
     # Give gem5 some time to initialize before starting the frontend
@@ -52,5 +55,5 @@ if __name__ == "__main__":
     path = GEM5_DIR
 
     frontend = SimScholarFrontend(
-        port=port, path=path
+        port=port, path=path, process=gem5_process
     )
