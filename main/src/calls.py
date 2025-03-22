@@ -47,15 +47,15 @@ class SimScholarCalls:
         printdebug("[calls] Configuration sent to gem5")
         messages = []
 
-        messages.append(json.loads(self.proxy.add_config(id)))
+        messages.append("add_config: " + json.loads(self.proxy.add_config(id)))
 
-        messages.append(json.loads(self.proxy.set_board(
+        messages.append("board: " + json.loads(self.proxy.set_board(
             id, 
             usr_config['board']['type'], 
             usr_config['board']['clk']
         )))
 
-        messages.append(json.loads(self.proxy.set_processor(
+        messages.append("processor: " + json.loads(self.proxy.set_processor(
             id, 
             usr_config['processor']['isa'], 
             usr_config['processor']['type'],
@@ -63,13 +63,13 @@ class SimScholarCalls:
             usr_config['processor']['ncores']
         )))
 
-        messages.append(json.loads(self.proxy.set_memory(
+        messages.append("memory: " + json.loads(self.proxy.set_memory(
             id, 
             usr_config['memory']['type'], 
             usr_config['memory']['size']
         )))
 
-        messages.append(json.loads(self.proxy.set_cache(
+        messages.append("cache: " + json.loads(self.proxy.set_cache(
             id,
             usr_config['cache']['type'],
             usr_config['cache']['l1d_size'], 
@@ -80,12 +80,12 @@ class SimScholarCalls:
             usr_config['cache']['l2_assoc']
         )))
 
-        messages.append(json.loads(self.proxy.set_resource(
+        messages.append("resource: " + json.loads(self.proxy.set_resource(
             id, 
             resource[1]
         )))
-        print(messages)
-    
+        for msg in messages:
+            printdebug(f"[calls] {msg}")    
 
     def shutdown(self):
         printdebug("[calls] shutting down backend")
@@ -97,7 +97,7 @@ class SimScholarCalls:
         saved = json.loads(self.proxy.get_configs())
         render_box.configure(state="normal")
         render_box.delete("1.0", "end")
-        render_box.insert("1.0", json.dumps(saved))
+        render_box.insert("1.0", json.dumps(saved, indent=1))
         render_box.configure(state="disabled")
 
     def run_simulation(self, id):
