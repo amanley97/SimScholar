@@ -1,13 +1,23 @@
 import tkinter as tk
 from tkinter import ttk, PhotoImage, messagebox
+from tkinter import Toplevel
+import os
+import requests
+import webbrowser
+
 from .render import SimScholarRender
 from .calls import SimScholarCalls
 from .ide import SimScholarIDE
 from .ide import SimScholarResource
 from .stats import SimScholarStats
 from main.utils.printdebug import printdebug
+<<<<<<< Updated upstream
 from subprocess import Popen
 import time
+=======
+from main.utils.activity_logger import log_activity
+
+>>>>>>> Stashed changes
 
 
 class SimScholarFrontend:
@@ -41,6 +51,7 @@ class SimScholarFrontend:
         except:
             raise ValueError(f"Failed to obtain gem5 data. Is the port correct?")
         self.root = self.root_window()
+        self.add_ai_assistant(self.root)
         self.root.mainloop()
 
     # def update_wraplength(event=None):
@@ -82,6 +93,9 @@ class SimScholarFrontend:
         notebook.add(tab4, text="Statistics")
         notebook.add(tab5, text="Options")
 
+        notebook.bind("<<NotebookTabChanged>>", self.on_tab_switch)
+
+
         stat_frames = self.stats_window(tab4)
         self.config_window(tab1, stat_frames)
         self.saved_window(tab2)
@@ -89,7 +103,15 @@ class SimScholarFrontend:
         self.options_window(tab5)
         return root
 
+<<<<<<< Updated upstream
     def configure_tabs(self, master: ttk.Frame):
+=======
+    def on_tab_switch(self, event):
+        tab = event.widget.tab(event.widget.select(), "text")
+        log_activity("clicked_main_tab", tab_name=tab)
+
+    def configure_tabs(self, master):
+>>>>>>> Stashed changes
         tabs = ttk.Notebook(master)
         tabs.pack(side="top", expand=True, fill="both")
 
@@ -177,7 +199,12 @@ class SimScholarFrontend:
         configure_button = ttk.Button(
             bottom,
             text="Configure",
+<<<<<<< Updated upstream
             command=lambda: self.verify(
+=======
+            command=lambda: self.configure_and_log(
+                hint_bar,
+>>>>>>> Stashed changes
                 self.render.sections,
                 self.resource.resource_selected,
                 id_text_val.get(),
@@ -189,9 +216,19 @@ class SimScholarFrontend:
         simulate_button = ttk.Button(
             bottom,
             text="Simulate",
+<<<<<<< Updated upstream
             command=lambda: self.clear_output_and_sim(id_text_val.get()),
+=======
+            command=lambda: self.simulate_and_log(
+                hint_bar, sim_output, stats_frames, id_text_val.get()
+            ),
+>>>>>>> Stashed changes
             width=50,
         ).pack(side="right", padx=2, pady=2)
+
+        def simulate_and_log(self, hint_bar, sim_output, stats_frames, config_id):
+            log_activity("run_simulation", config_id=config_id)
+            self.caller.run_simulation(hint_bar, sim_output, stats_frames, config_id)
 
     def resource_menu(self, master):
         # RESOURCE MANAGER
@@ -542,6 +579,183 @@ class SimScholarFrontend:
             self.styler.update_theme(self.ss_configs["theme"])
             printdebug(f"[options] theme updated to {self.ss_configs['theme']} mode.")
 
+    def toggle_ai_window(self):
+        if self.ai_chat_win.state() == "withdrawn":
+            self.ai_chat_win.deiconify()
+        else:
+            self.ai_chat_win.withdraw()
+
+    
+    def add_ai_assistant(self, master):
+        # Floating button
+        ai_button = tk.Button(
+            master,
+            text="💬",
+            font=("Arial", 14),
+            command=self.toggle_ai_window,
+            bg="#4CAF50",
+            fg="white",
+            bd=0,
+            relief=tk.RAISED
+        )
+        ai_button.place(relx=1.0, rely=1.0, anchor="se", x=-20, y=-20)
+
+        # Chat popup
+        self.ai_chat_win = tk.Toplevel(master)
+        self.ai_chat_win.title("Gem5 AI Assistant")
+        self.ai_chat_win.geometry("400x550")
+        self.ai_chat_win.withdraw()
+        self.ai_chat_win.protocol("WM_DELETE_WINDOW", self.toggle_ai_window)
+
+        # Chat display
+        self.chat_text = tk.Text(self.ai_chat_win, state="disabled", wrap="word", bg="white", fg="black")
+        self.chat_text.pack(side="top", fill="both", expand=True, padx=10, pady=(10, 0))
+
+        # Input bar
+        input_frame = tk.Frame(self.ai_chat_win)
+        input_frame.pack(side="bottom", fill="x", padx=10, pady=10)
+
+        self.chat_entry = tk.Entry(input_frame, font=("Arial", 10))
+        self.chat_entry.pack(side="left", fill="x", expand=True)
+
+        send_button = tk.Button(input_frame, text="Send", command=self.send_to_ai)
+        send_button.pack(side="right", padx=(10, 0))
+
+
+    def send_to_ai(self):
+        from main.utils.activity_logger import log_activity
+
+        msg = self.chat_entry.get().strip()
+        if not msg:
+            return
+
+        self.chat_entry.delete(0, tk.END)
+
+        # Log the user's question
+        log_activity("ai_query", question=msg)
+
+        self.chat_text.config(state="normal")
+        self.chat_text.insert(tk.END, f"You: {msg}\n")
+        self.chat_text.config(state="disabled")
+
+        try:
+            response = requests.post("http://localhost:5000/ask", json={"question": msg})
+            data = response.json()
+            explanation = data.get("explanation", "[No explanation returned]")
+            graph_url = data.get("graph_url", None)
+
+            # ✅ Log the response itself
+            log_activity(
+                "ai_chat",
+                question=msg,
+                response=explanation.strip() if explanation else "[empty response]"
+            )
+
+        except Exception as e:
+            explanation = f"[Error] Failed to connect to AI: {e}"
+            graph_url = None
+            log_activity("ai_chat", question=msg, response=explanation)
+
+        if explanation == "__TABLE__" and isinstance(data.get("metrics"), list):
+            self.show_ai_table(data["metrics"])
+        else:
+            self.chat_text.config(state="normal")
+            self.chat_text.insert(tk.END, f"AI: {explanation}\n")
+            self.chat_text.config(state="disabled")
+
+        if graph_url:
+            try:
+                import webbrowser
+                graph_path = os.path.abspath("static/graph.png")
+                self.chat_text.config(state="normal")
+                self.chat_text.insert(tk.END, "[Graph generated — opening in viewer]\n")
+                self.chat_text.config(state="disabled")
+                webbrowser.open(f"file://{graph_path}")
+            except Exception as e:
+                self.chat_text.config(state="normal")
+                self.chat_text.insert(tk.END, f"[Error opening graph: {e}]\n")
+                self.chat_text.config(state="disabled")
+
+        self.chat_text.config(state="normal")
+        self.chat_text.insert(tk.END, "\n")
+        self.chat_text.config(state="disabled")
+        self.chat_text.see(tk.END)
+
+    def show_ai_table(self, metrics):
+        table_win = tk.Toplevel(self.root)
+        table_win.title("Simulation Analysis")
+
+        columns = ["Metric", "Value", "Meaning", "Interpretation"]
+        tree = ttk.Treeview(table_win, columns=columns, show="headings")
+
+        # Set column headers
+        for col in columns:
+            tree.heading(col, text=col)
+            tree.column(col, anchor="center", width=150)
+
+        # Insert data into the tree
+        for m in metrics:
+            tree.insert("", "end", values=(
+                m.get('name', ''),
+                m.get('value', ''),
+                m.get('meaning', ''),
+                m.get('interpretation', '')
+            ))
+
+        tree.pack(expand=True, fill="both")
+
+        # Add scrollbar
+        scrollbar = ttk.Scrollbar(table_win, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+
+    def render_metrics_table(self, data):
+        # Clear existing chat box contents
+        for widget in self.chat_text.winfo_children():
+            widget.destroy()
+        self.chat_text.pack_forget()
+
+        # Create Treeview table
+        table = ttk.Treeview(self.ai_chat_win, columns=("Metric", "Value", "Meaning", "Interpretation"), show="headings", height=10)
+        table.heading("Metric", text="Metric")
+        table.heading("Value", text="Value")
+        table.heading("Meaning", text="Meaning")
+        table.heading("Interpretation", text="Interpretation")
+
+        table.column("Metric", width=120)
+        table.column("Value", width=80)
+        table.column("Meaning", width=200)
+        table.column("Interpretation", width=120)
+
+        # Insert data
+        for metric in data:
+            table.insert("", "end", values=(
+                metric["name"],
+                metric["value"],
+                metric["meaning"],
+                metric["interpretation"]
+            ))
+
+        table.pack(expand=True, fill="both", padx=10, pady=10)
+
+    def simulate_and_log(self, hint_bar, sim_output, stats_frames, config_id):
+        # Simple event
+        log_activity("clicked_button", button_id="Simulate", config_id=config_id)
+
+        # Detailed run metadata
+        log_activity("run_simulation", config_id=config_id)
+
+        self.caller.run_simulation(hint_bar, sim_output, stats_frames, config_id)
+
+    def configure_and_log(self, hint_bar, sections, resource, config_id):
+        
+            # Simple event
+        log_activity("clicked_button", button_id="Configure", config_id=config_id)
+
+        # Rich, detailed config
+        log_activity("configure_sim", config_id=config_id, sections=sections, resource=resource)
+
+        self.verify(hint_bar, sections, resource, config_id)
 
 class SimScholarStyling:
     def __init__(self, root, theme) -> None:
